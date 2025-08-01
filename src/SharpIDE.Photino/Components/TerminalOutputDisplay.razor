@@ -2,7 +2,6 @@
 @using XtermBlazor
 
 @inject BuildService BuildService
-@inject IJSRuntime JsRuntime
 
 @implements IDisposable
 
@@ -11,12 +10,9 @@
 </div>
 
 @code {
-	private List<string> _outputLines = [];
-	private ElementReference _logContainer;
-
 	private Xterm _terminalRef;
 
-	private TerminalOptions _options = new TerminalOptions
+	private readonly TerminalOptions _options = new TerminalOptions
 	{
 		CursorBlink = true,
 		CursorStyle = CursorStyle.Bar,
@@ -53,18 +49,9 @@
 
 	private async Task ClearPreviousOutput()
 	{
-		_outputLines.Clear();
 		await _terminalRef.Clear();
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private async Task ScrollToBottomAsync()
-	{
-		await JsRuntime.InvokeVoidAsync("scrollToBottom", _logContainer);
-	}
-
-	public void Dispose()
-	{
-		BuildService.BuildStarted -= ClearPreviousOutput;
-	}
+	public void Dispose() => BuildService.BuildStarted -= ClearPreviousOutput;
 }
