@@ -41,7 +41,7 @@
 			}
 		</MudContainer>
 	</MudMainContent>
-	<MudDrawer @bind-Open="@_terminalDrawerOpen" Variant="DrawerVariant.Temporary" Anchor="Anchor.Bottom">
+	<MudDrawer @bind-Open="@_terminalDrawerOpen" Elevation="2" Variant="DrawerVariant.Temporary" Overlay="false" Anchor="Anchor.Bottom">
 		<MudText>Terminal</MudText>
 		<TerminalOutputDisplay />
 	</MudDrawer>
