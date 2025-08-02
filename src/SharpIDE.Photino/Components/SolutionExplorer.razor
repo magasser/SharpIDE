@@ -13,19 +13,29 @@
 		transition-duration: 0.0s !important;
 	}
 </style>
-<MudTreeView T="ISharpIdeNode" Dense="true" ExpandOnClick="true">
-	<MudTreeViewItem T="ISharpIdeNode" TextTypo="Typo.body2" Expanded="true" Icon="@Icons.Material.Filled.Folder" IconColor="Color.Primary" Value="@SolutionModel" Text="@SolutionModel.Name">
-		@foreach (var folder in SolutionModel.Folders)
-		{
-			@GetSolutionFolderFragment(folder)
-		}
-		@foreach (var project in SolutionModel.Projects)
-		{
-			@GetProjectFragment(project)
-		}
-	</MudTreeViewItem>
-</MudTreeView>
-
+	<MudMenu Style="flex-direction: column; width: 100%" ActivationEvent="@MouseEvent.RightClick" PositionAtCursor="true" Dense="true" Modal="false">
+		<ActivatorContent>
+			<MudTreeView T="ISharpIdeNode" Dense="true" ExpandOnClick="true">
+				<MudTreeViewItem T="ISharpIdeNode" TextTypo="Typo.body2" Expanded="true" Icon="@Icons.Material.Filled.Folder" IconColor="Color.Primary" Value="@SolutionModel" Text="@SolutionModel.Name">
+					@foreach (var folder in SolutionModel.Folders)
+					{
+						@GetSolutionFolderFragment(folder)
+					}
+					@foreach (var project in SolutionModel.Projects)
+					{
+						@GetProjectFragment(project)
+					}
+				</MudTreeViewItem>
+			</MudTreeView>
+		</ActivatorContent>
+		<ChildContent>
+			<MudMenuItem Icon="@Icons.Material.Filled.PlayArrow" IconColor="Color.Success" Label="Run" />
+			<MudMenuItem Label="Build" />
+			<MudMenuItem Label="Rebuild" />
+			<MudMenuItem Label="Clean" />
+			<MudMenuItem Label="Restore" />
+		</ChildContent>
+	</MudMenu>
 
 @code {
 	[Parameter, EditorRequired]
