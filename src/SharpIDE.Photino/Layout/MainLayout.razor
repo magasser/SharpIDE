@@ -17,8 +17,8 @@
 			<MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary" OnClick="@CleanSolution">Clean</MudButton>
 			<MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary" OnClick="@RestoreSolution">Restore</MudButton>
 		</MudButtonGroup>
-		<MudButton OnClick="@CancelBuild">
-			<MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Medium" Color="Color.Default" />
+		<MudButton OnClick="@CancelBuild" Disabled="@(_cancellationTokenSource is null or { IsCancellationRequested: true })">
+			<MudIcon Disabled="@(_cancellationTokenSource is null or { IsCancellationRequested: true })" Icon="@Icons.Material.Filled.Cancel" Size="Size.Medium" Color="Color.Error" />
 		</MudButton>
 		<MudSpacer />
 		<MudStack Row="true" AlignItems="AlignItems.Center">
@@ -91,7 +91,7 @@
 		}
 	}
 
-	private CancellationTokenSource _cancellationTokenSource = null!;
+	private CancellationTokenSource? _cancellationTokenSource = null!;
 	private async Task BuildSolution() => await MsBuildSolution(BuildType.Build);
 	private async Task RebuildSolution() => await MsBuildSolution(BuildType.Rebuild);
 	private async Task CleanSolution() => await MsBuildSolution(BuildType.Clean);
@@ -102,7 +102,7 @@
 		_cancellationTokenSource = new CancellationTokenSource();
 		await BuildService.MsBuildSolutionAsync(_solutionFilePath!, buildType, _cancellationTokenSource.Token);
 	}
-	private async Task CancelBuild() => await _cancellationTokenSource.CancelAsync();
+	private async Task CancelBuild() => await _cancellationTokenSource!.CancelAsync();
 
 	private async Task OpenSettingsDialog()
 	{
