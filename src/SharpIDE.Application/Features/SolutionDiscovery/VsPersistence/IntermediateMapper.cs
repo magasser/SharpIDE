@@ -6,7 +6,7 @@ namespace SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 public static class IntermediateMapper
 {
-	public static async Task<IntermediateSolutionModel> GetIntermediateModel(string solutionFilePath,
+	internal static async Task<IntermediateSolutionModel> GetIntermediateModel(string solutionFilePath,
 		CancellationToken cancellationToken = default)
 	{
 		var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFilePath);
