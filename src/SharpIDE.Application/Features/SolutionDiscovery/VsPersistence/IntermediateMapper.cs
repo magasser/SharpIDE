@@ -16,11 +16,13 @@ public static class IntermediateMapper
 		var rootFolders = vsSolution.SolutionFolders
 			.Where(f => f.Parent is null)
 			.Select(f => GetSlnFolderModel(f, solutionFilePath, vsSolution.SolutionFolders, vsSolution.SolutionProjects))
+			.OrderBy(s => s.Model.Name)
 			.ToList();
 
 		var rootProjects = vsSolution.SolutionProjects
 			.Where(p => p.Parent is null)
 			.Select(s => s.GetProjectModel(solutionFilePath))
+			.OrderBy(s => s.Model.ActualDisplayName)
 			.ToList();
 
 		var solutionModel = new IntermediateSolutionModel
@@ -39,11 +41,13 @@ public static class IntermediateMapper
 		var childFolders = allSolutionFolders
 			.Where(f => f.Parent == folder)
 			.Select(f => GetSlnFolderModel(f, solutionFilePath, allSolutionFolders, allSolutionProjects))
+			.OrderBy(s => s.Model.Name)
 			.ToList();
 
 		var projectsInFolder = allSolutionProjects
 			.Where(p => p.Parent == folder)
 			.Select(s => s.GetProjectModel(solutionFilePath))
+			.OrderBy(s => s.Model.ActualDisplayName)
 			.ToList();
 
 		var filesInFolder = folder.Files?
