@@ -1,6 +1,6 @@
-﻿<div style="@GetStyle">
+﻿<span style="@GetStyle">
 	@ChildContent
-</div>
+</span>
 
 @code {
 	[Parameter, EditorRequired]
@@ -9,5 +9,5 @@
 	[Parameter, EditorRequired]
 	public bool Visible { get; set; }
 
-	private string GetStyle => Visible ? "display: inherit" : "display: none";
+	private string GetStyle => Visible ? "display: inherit; height: 100%" : "display: none";
 }

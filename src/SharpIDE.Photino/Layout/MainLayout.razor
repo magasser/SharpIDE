@@ -70,8 +70,8 @@
 						</div>
 					</MudDrawerContainer>
 				</MudPaper>
-				<div>
-					@if (_solutionFilePath is not null && _selectedBottomPanel is not null)
+				<div style="height: 30%">
+					@if (_solutionFilePath is not null)
 					{
 						<DisplayNoneComponent Visible="@(_selectedBottomPanel is BottomPanelType.Run)">
 							<RunPanel />

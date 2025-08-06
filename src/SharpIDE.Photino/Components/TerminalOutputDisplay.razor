@@ -10,9 +10,9 @@
 	}
 </style>
 
-<div style="width: 100%">
+<div style="width: 100%; height: 100%; overflow: auto">
 	<MudText>Terminal</MudText>
-	<Xterm @ref="@_terminalRef" Style="height: 100%" Options="@_options"/>
+	<Xterm @ref="@_terminalRef" Options="@_options" Style="height: calc(100% - 24px)" Addons="@_addons" OnFirstRender="@OnFirstRender"/>
 </div>
 
 @code {
@@ -33,6 +33,8 @@
 			Background = "#282c34",
 		},
 	};
+
+	private HashSet<string> _addons = ["addon-fit"];
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -60,4 +62,28 @@
 	}
 
 	public void Dispose() => BuildService.BuildStarted -= ClearPreviousOutput;
+
+	private async Task OnFirstRender()
+	{
+		await _terminalRef.Addon("addon-fit").InvokeVoidAsync("fit");
+		_ = Task.Run(async () =>
+		{
+			try
+			{
+				while (true)
+				{
+					await Task.Delay(500).ConfigureAwait(false);
+					await InvokeAsync(async () =>
+					{
+						await _terminalRef.Addon("addon-fit").InvokeVoidAsync("fit");
+					});
+				}
+
+			}
+			catch (Exception e)
+			{
+				await DispatchExceptionAsync(e);
+			}
+		});
+	}
 }
