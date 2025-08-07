@@ -1,7 +1,7 @@
 ﻿@using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence
 
 <div @onmouseover="@(() => _open = true)" @onmouseleave="@(() => _open = false)">
-	<MudPopover Open="@_open" AnchorOrigin="Origin.CenterCenter">
+	<MudPopover Open="@_open" AnchorOrigin="Origin.CenterCenter" TransformOrigin="Origin.CenterRight">
 		<div class="">
 			<MudPaper Class="pa-2">
 				@foreach(var projects in SolutionModel.AllProjects)
