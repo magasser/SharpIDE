@@ -12,7 +12,7 @@ public static class VsPersistenceMapper
 		var intermediateModel = await IntermediateMapper.GetIntermediateModel(solutionFilePath, cancellationToken);
 
 		var solutionName = Path.GetFileName(solutionFilePath);
-		var allProjects = new List<SharpIdeProjectModel>();
+		var allProjects = new HashSet<SharpIdeProjectModel>();
 		var solutionModel = new SharpIdeSolutionModel
 		{
 			Name = solutionName,
@@ -33,7 +33,7 @@ public static class VsPersistenceMapper
 
 		return solutionModel;
 	}
-	private static SharpIdeProjectModel GetSharpIdeProjectModel(IntermediateProjectModel projectModel, List<SharpIdeProjectModel> allProjects)
+	private static SharpIdeProjectModel GetSharpIdeProjectModel(IntermediateProjectModel projectModel, HashSet<SharpIdeProjectModel> allProjects)
 	{
 		var project = new SharpIdeProjectModel
 		{
@@ -47,7 +47,7 @@ public static class VsPersistenceMapper
 		return project;
 	}
 
-	private static SharpIdeSolutionFolder GetSharpIdeSolutionFolder(IntermediateSlnFolderModel folderModel, List<SharpIdeProjectModel> allProjects) => new SharpIdeSolutionFolder()
+	private static SharpIdeSolutionFolder GetSharpIdeSolutionFolder(IntermediateSlnFolderModel folderModel, HashSet<SharpIdeProjectModel> allProjects) => new SharpIdeSolutionFolder()
 	{
 		Name = folderModel.Model.Name,
 		Files = folderModel.Files.Select(GetSharpIdeFile).ToList(),
