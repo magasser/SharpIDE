@@ -7,7 +7,7 @@
 @implements IDisposable
 
 <div @onmouseover="@(() => _open = true)">
-	<MudPopover Duration="100" OverflowBehavior="OverflowBehavior.FlipNever" Open="@true" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopRight">
+	<MudPopover Duration="100" OverflowBehavior="OverflowBehavior.FlipNever" Open="@_open" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopRight">
 		<MudStack @onmouseleave="@(() => _open = false)" Justify="Justify.FlexEnd" Class="pa-0 ma-0" Spacing="0">
 			<MudButton Disabled="true" Style="min-width: 20px; align-self: end">
 				<MudIcon Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Medium" Color="Color.Default"/>
