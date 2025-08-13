@@ -3,11 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType> <!-- Exe output type is required for obscure Microsoft.CodeAnalysis.Workspaces.MSBuild dll copying reasons -->
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-<!-- If any Microsoft.Build.dll ends up in the output, it will be prioritised for loading by MSBuild Nodes  -->
+<!-- If any Microsoft.Build.*.dll (Excluding Locator) ends up in the output, it will be prioritised for loading by MSBuild Nodes  -->
     <PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />
     <PackageReference Include="AsyncReadProcess" Version="1.0.0-preview9" />
     <PackageReference Include="Microsoft.Build" Version="17.14.8" ExcludeAssets="runtime" />
@@ -15,8 +16,8 @@
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
     <PackageReference Include="NuGet.Protocol" Version="6.14.0" />
   </ItemGroup>

@@ -53,6 +53,10 @@ public class BuildService
 		var buildResult = await BuildManager.DefaultBuildManager.BuildAsync(buildParameters, buildRequest, cancellationToken).ConfigureAwait(false);
 		timer.Stop();
 		Console.WriteLine($"Build result: {buildResult.OverallResult} in {timer.ElapsedMilliseconds}ms");
+		if (buildResult.OverallResult != BuildResultCode.Success)
+		{
+			Console.WriteLine($"{buildResult.Exception}");
+		}
 	}
 
 	private static string[] TargetsToBuild(BuildType buildType)

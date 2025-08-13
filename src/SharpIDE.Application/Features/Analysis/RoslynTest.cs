@@ -23,17 +23,17 @@ public static class RoslynTest
 			foreach (var document in project.Documents)
 			{
 				Console.WriteLine($"Document: {document.Name}");
-				var compilation = await project.GetCompilationAsync();
-				Guard.Against.Null(compilation, nameof(compilation));
-
-				// Get diagnostics (built-in or custom analyzers)
-				var diagnostics = compilation.GetDiagnostics();
-
-				foreach (var diagnostic in diagnostics)
-				{
-					Console.WriteLine(diagnostic);
-					// Optionally run CodeFixProviders here
-				}
+				// var compilation = await project.GetCompilationAsync();
+				// Guard.Against.Null(compilation, nameof(compilation));
+				//
+				// // Get diagnostics (built-in or custom analyzers)
+				// var diagnostics = compilation.GetDiagnostics();
+				//
+				// foreach (var diagnostic in diagnostics)
+				// {
+				// 	Console.WriteLine(diagnostic);
+				// 	// Optionally run CodeFixProviders here
+				// }
 				// var syntaxTree = await document.GetSyntaxTreeAsync();
 				// var root = await syntaxTree!.GetRootAsync();
 				// var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root.FullSpan);
