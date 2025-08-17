@@ -1,9 +1,11 @@
 ﻿@using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence
-<MudStack Style="height: 100%; overflow-y: scroll">
-	@foreach (var project in SolutionModel.AllProjects)
-	{
-		<ProjectProblemComponent ProjectModel="@project" />
-	}
+<MudStack Style="height: 100%">
+	<MudTreeView T="string" Dense="true" ExpandOnClick="true">
+		@foreach (var project in SolutionModel.AllProjects)
+		{
+			<ProjectProblemComponent ProjectModel="@project"/>
+		}
+	</MudTreeView>
 </MudStack>
 
 @code {
