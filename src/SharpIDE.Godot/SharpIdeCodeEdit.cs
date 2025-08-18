@@ -120,7 +120,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		if (line < 0 || line >= GetLineCount())
 			return;
 
-		if (caretStartCol >= caretEndCol) // nothing to draw
+		if (caretStartCol > caretEndCol) // something went wrong
 			return;
 
 		// Clamp columns to line length
@@ -142,12 +142,16 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		var endPos = endRect.End;
 		startPos.Y -= 3;
 		endPos.Y   -= 3;
+		if (caretStartCol == caretEndCol)
+		{
+			endPos.X += 10;
+		}
 		DrawDashedLine(startPos, endPos, color, thickness);
 		//DrawLine(startPos, endPos, color, thickness);
 	}
 	public override void _Draw()
 	{
-		UnderlineRange(_currentLine, _selectionStartCol, _selectionEndCol, new Color(1, 0, 0));
+		//UnderlineRange(_currentLine, _selectionStartCol, _selectionEndCol, new Color(1, 0, 0));
 		foreach (var (fileSpan, diagnostic) in _diagnostics)
 		{
 			if (diagnostic.Location.IsInSource)
