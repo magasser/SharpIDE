@@ -31,17 +31,22 @@
 
 	private HashSet<string> _addons = ["addon-fit"];
 
+	private TaskCompletionSource _firstRenderTask = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
 	public async Task Write(byte[] line)
 	{
+		if (_firstRenderTask.Task.IsCompleted is false) await _firstRenderTask.Task;
 		await _terminalRef.Write(line);
 	}
 	public async Task Write(string line)
 	{
+		if (_firstRenderTask.Task.IsCompleted is false) await _firstRenderTask.Task;
 		await _terminalRef.Write(line);
 	}
 
 	public async Task Clear()
 	{
+		if (_firstRenderTask.Task.IsCompleted is false) await _firstRenderTask.Task;
 		if (_terminalRef is not null)
 		{
 			await _terminalRef.Reset();
@@ -52,6 +57,7 @@
 	private async Task OnFirstRender()
 	{
 		await _terminalRef.Addon("addon-fit").InvokeVoidAsync("fit");
+		_firstRenderTask.SetResult();
 		_ = Task.Run(async () =>
 		{
 			try

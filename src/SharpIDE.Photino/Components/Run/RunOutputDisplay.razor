@@ -26,16 +26,17 @@
 	{
 		Guard.Against.Null(Project);
 		Guard.Against.Null(Project.RunningOutputChannel, nameof(Project.RunningOutputChannel));
-		if (_terminalDisplayRef is not null) await _terminalDisplayRef.Clear();
-		await InvokeAsync(async () => await OnProjectStarted.InvokeAsync(Project));
+
 		_ = Task.Run(async () =>
 		{
 			try
 			{
-				await foreach (var log in Project.RunningOutputChannel.Reader.ReadAllAsync())
+				if (_terminalDisplayRef is not null) await _terminalDisplayRef.Clear();
+				await InvokeAsync(async () => await OnProjectStarted.InvokeAsync(Project));
+				await foreach (var log in Project.RunningOutputChannel.Reader.ReadAllAsync().ConfigureAwait(false))
 				{
 					// Better hope you don't get a log until we get the component ref lol
-					await _terminalDisplayRef.Write(log);
+					await _terminalDisplayRef.Write(log).ConfigureAwait(false);
 				}
 			}
 			catch (Exception e) when (e is not OperationCanceledException)
