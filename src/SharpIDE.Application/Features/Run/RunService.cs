@@ -2,6 +2,7 @@
 using System.Threading.Channels;
 using Ardalis.GuardClauses;
 using AsyncReadProcess;
+using SharpIDE.Application.Features.Evaluation;
 using SharpIDE.Application.Features.Events;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
@@ -22,16 +23,29 @@ public class RunService
 		if (project.RunningCancellationTokenSource is not null) throw new InvalidOperationException($"Project {project.Name} is already running with a cancellation token source.");
 
 		project.RunningCancellationTokenSource = new CancellationTokenSource();
+		var dllFullPath = ProjectEvaluation.GetOutputDllFullPath(project);
+		var launchProfiles = await LaunchSettingsParser.GetLaunchSettingsProfiles(project);
+		var launchProfile = launchProfiles.FirstOrDefault();
 		try
 		{
 			var processStartInfo = new ProcessStartInfo2
 			{
 				FileName = "dotnet",
-				Arguments = $"run --project \"{project.FilePath}\" --no-restore",
+				WorkingDirectory = Path.GetDirectoryName(project.FilePath),
+				//Arguments = $"run --project \"{project.FilePath}\" --no-restore",
+				Arguments = $"\"{dllFullPath}\"",
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				EnvironmentVariables = []
 			};
+			if (launchProfile is not null)
+			{
+				foreach (var envVar in launchProfile.EnvironmentVariables)
+				{
+					processStartInfo.EnvironmentVariables[envVar.Key] = envVar.Value;
+				}
+				if (launchProfile.ApplicationUrl != null) processStartInfo.EnvironmentVariables["ASPNETCORE_URLS"] = launchProfile.ApplicationUrl;
+			}
 
 			var process = new Process2
 			{
