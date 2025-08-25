@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bcoytt3bw0gpe"]
 
 [ext_resource type="Script" uid="uid://ddivigavjclyb" path="res://Features/Run/RunPanel.cs" id="1_sq1l4"]
-[ext_resource type="Texture2D" uid="uid://76nkes2imlf2" path="res://Features/Run/Resources/Running.png" id="2_tu4jg"]
+[ext_resource type="Texture2D" uid="uid://0digl54lqm6p" path="res://Features/Run/Resources/Running.svg" id="2_tu4jg"]
 
 [node name="RunPanel" type="Control"]
 layout_mode = 3
