@@ -251,9 +251,11 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		var godotLine = _executionStopInfo.Line - 1;
 		SetLineAsExecuting(godotLine, false);
 		SetLineColour(godotLine);
+		var threadId = _executionStopInfo.ThreadId;
+		_executionStopInfo = null;
 		_ = GodotTask.Run(async () =>
 		{
-			await Singletons.RunService.SendDebuggerStepOver(_executionStopInfo.ThreadId);
+			await Singletons.RunService.SendDebuggerStepOver(threadId);
 		});
 	}
 
