@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b2oniigcp5ew5"]
+[gd_scene load_steps=11 format=3 uid="uid://b2oniigcp5ew5"]
 
 [ext_resource type="Script" uid="uid://bavypuy7b375x" path="res://IdeRoot.cs" id="1_whawi"]
 [ext_resource type="Texture2D" uid="uid://bkty6563cthj8" path="res://Features/Run/Resources/Run.svg" id="2_8x8ub"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://bai53k7ongbxw" path="res://Features/SolutionExplorer/SolutionExplorerPanel.cs" id="2_tcy02"]
 [ext_resource type="Script" uid="uid://kvnhndc3l6ih" path="res://Features/CustomControls/InvertedVSplitContainer.cs" id="3_0ybuf"]
 [ext_resource type="PackedScene" uid="uid://bcoytt3bw0gpe" path="res://Features/Run/RunPanel.tscn" id="5_y3aoi"]
+[ext_resource type="Script" uid="uid://cvvgp42r3nml8" path="res://Features/BottomPanel/BottomPanelManager.cs" id="7_i62lx"]
+[ext_resource type="PackedScene" uid="uid://co6dkhdolriej" path="res://Features/Build/BuildPanel.tscn" id="9_rllbf"]
 
 [sub_resource type="FontVariation" id="FontVariation_y3aoi"]
 base_font = ExtResource("2_rk34b")
@@ -50,6 +52,13 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 text = "Open Sln"
+
+[node name="BuildSlnButton" type="Button" parent="VBoxContainer/Panel/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+text = "Build
+"
 
 [node name="Spacer" type="Control" parent="VBoxContainer/Panel/HBoxContainer"]
 layout_mode = 2
@@ -200,11 +209,16 @@ item_count = 1
 item_0/text = "Getting Context Actions..."
 item_0/id = 0
 
-[node name="Panel" type="Panel" parent="VBoxContainer/HBoxContainer/VSplitContainer"]
+[node name="BottomPanel" type="Panel" parent="VBoxContainer/HBoxContainer/VSplitContainer"]
 layout_mode = 2
+script = ExtResource("7_i62lx")
 
-[node name="RunPanel" parent="VBoxContainer/HBoxContainer/VSplitContainer/Panel" instance=ExtResource("5_y3aoi")]
+[node name="RunPanel" parent="VBoxContainer/HBoxContainer/VSplitContainer/BottomPanel" instance=ExtResource("5_y3aoi")]
 unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="BuildPanel" parent="VBoxContainer/HBoxContainer/VSplitContainer/BottomPanel" instance=ExtResource("9_rllbf")]
 layout_mode = 1
 
 [node name="OpenSolutionDialog" type="FileDialog" parent="."]

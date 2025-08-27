@@ -12,6 +12,7 @@ namespace SharpIDE.Godot;
 public partial class IdeRoot : Control
 {
 	private Button _openSlnButton = null!;
+	private Button _buildSlnButton = null!;
 	private FileDialog _fileDialog = null!;
 	private SharpIdeCodeEdit _sharpIdeCodeEdit = null!;
 	private SolutionExplorerPanel _solutionExplorerPanel = null!;
@@ -25,6 +26,7 @@ public partial class IdeRoot : Control
 		MSBuildLocator.RegisterDefaults();
 		
 		_openSlnButton = GetNode<Button>("%OpenSlnButton");
+		_buildSlnButton = GetNode<Button>("%BuildSlnButton");
 		_runMenuPopup = GetNode<Popup>("%RunMenuPopup");
 		_runMenuButton = GetNode<Button>("%RunMenuButton");
 		_runMenuButton.Pressed += () =>
@@ -42,8 +44,13 @@ public partial class IdeRoot : Control
 		_fileDialog.FileSelected += OnFileSelected;
 		_runPanel = GetNode<RunPanel>("%RunPanel");
 		_openSlnButton.Pressed += () => _fileDialog.Visible = true;
-		//_fileDialog.Visible = true;
+		_buildSlnButton.Pressed += OnBuildSlnButtonPressed;
 		OnFileSelected(@"C:\Users\Matthew\Documents\Git\BlazorCodeBreaker\BlazorCodeBreaker.slnx");
+	}
+
+	private async void OnBuildSlnButtonPressed()
+	{
+		await Singletons.BuildService.MsBuildSolutionAsync(_solutionExplorerPanel.SolutionModel.FilePath);
 	}
 
 	private async void OnSolutionExplorerPanelOnFileSelected(SharpIdeFileGodotContainer file)
