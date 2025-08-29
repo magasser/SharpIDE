@@ -16,6 +16,11 @@ public class ThreadModel
 
 public class StackFrameModel
 {
+	public required string ClassName { get; set; }
+	public required string MethodName { get; set; }
+	public required string Namespace { get; set; }
+	public required string AssemblyName { get; set; }
+
 	public required int Id { get; set; }
 	public required string Name { get; set; }
 	public required int? Line { get; set; }
