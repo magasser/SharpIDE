@@ -63,12 +63,12 @@ public partial class ProblemsPanel : Control
                 .SubscribeAwait(async (innerEvent, ct) => await (innerEvent.Action switch
                 {
                     NotifyCollectionChangedAction.Add => CreateDiagnosticTreeItem(_tree, treeItem, innerEvent),
-                    NotifyCollectionChangedAction.Remove => FreeTreeItem(e.OldItem.View.Value),
+                    NotifyCollectionChangedAction.Remove => FreeTreeItem(innerEvent.OldItem.View.Value),
                     _ => Task.CompletedTask
                 })).AddTo(this);
         });
     }
-    
+
     private async Task CreateDiagnosticTreeItem(Tree tree, TreeItem parent, ViewChangedEvent<Diagnostic, TreeItemContainer> e)
     {
         await this.InvokeAsync(() =>

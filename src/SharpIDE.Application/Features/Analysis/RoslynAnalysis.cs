@@ -81,12 +81,7 @@ public static class RoslynAnalysis
 		_codeFixProviders = _codeFixProviders.DistinctBy(s => s.GetType().Name).ToHashSet();
 		_codeRefactoringProviders = _codeRefactoringProviders.DistinctBy(s => s.GetType().Name).ToHashSet();
 
-		foreach (var project in _sharpIdeSolutionModel.AllProjects)
-		{
-			var projectDiagnostics = await GetProjectDiagnostics(project);
-			project.Diagnostics.Clear();
-			project.Diagnostics.AddRange(projectDiagnostics);
-		}
+		await UpdateSolutionDiagnostics();
 		foreach (var project in solution.Projects)
 		{
 			// foreach (var document in project.Documents)
@@ -110,6 +105,18 @@ public static class RoslynAnalysis
 			// }
 		}
 		Console.WriteLine("RoslynAnalysis: Analysis completed.");
+	}
+
+	public static async Task UpdateSolutionDiagnostics()
+	{
+		await _solutionLoadedTcs.Task;
+		foreach (var project in _sharpIdeSolutionModel!.AllProjects)
+		{
+			var projectDiagnostics = await GetProjectDiagnostics(project);
+			// TODO: only add and remove diffs
+			project.Diagnostics.RemoveRange(project.Diagnostics);
+			project.Diagnostics.AddRange(projectDiagnostics);
+		}
 	}
 
 	public static async Task<ImmutableArray<Diagnostic>> GetProjectDiagnostics(SharpIdeProjectModel projectModel)
