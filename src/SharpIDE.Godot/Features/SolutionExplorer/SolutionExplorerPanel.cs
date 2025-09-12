@@ -109,6 +109,7 @@ public partial class SolutionExplorerPanel : Panel
 	{
 		var fileItem = _tree.CreateItem(parent);
 		fileItem.SetText(0, file.Name);
+		fileItem.SetIcon(0, CsharpFileIcon);
 		var container = new SharpIdeFileGodotContainer { File = file };
 		// TODO: Handle ObjectDB instances leaked at exit
 		fileItem.SetMetadata(0, container);
