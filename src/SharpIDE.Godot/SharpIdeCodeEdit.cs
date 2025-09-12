@@ -119,14 +119,16 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		RoslynAnalysis.UpdateDocument(_currentFile, Text);
 		_ = Task.GodotRun(async () =>
 		{
-			var syntaxHighlighting = await RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
-			var diagnostics = await RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
-			await RoslynAnalysis.UpdateSolutionDiagnostics();
+			var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
+			var diagnostics = RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
+			var slnDiagnostics = RoslynAnalysis.UpdateSolutionDiagnostics();
+			await Task.WhenAll(syntaxHighlighting, diagnostics);
 			Callable.From(() =>
 			{
-				SetSyntaxHighlightingModel(syntaxHighlighting);
-				SetDiagnosticsModel(diagnostics);
+				SetSyntaxHighlightingModel(syntaxHighlighting.Result);
+				SetDiagnosticsModel(diagnostics.Result);
 			}).CallDeferred();
+			await slnDiagnostics;
 		});
 	}
 
