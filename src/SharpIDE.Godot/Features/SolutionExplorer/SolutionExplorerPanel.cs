@@ -18,6 +18,8 @@ public partial class SolutionExplorerPanel : Panel
 	public Texture2D SlnFolderIcon { get; set; } = null!;
 	[Export]
 	public Texture2D CsprojIcon { get; set; } = null!;
+	[Export]
+	public Texture2D SlnIcon { get; set; } = null!;
 	
 	public SharpIdeSolutionModel SolutionModel { get; set; } = null!;
 	private Tree _tree = null!;
@@ -44,6 +46,7 @@ public partial class SolutionExplorerPanel : Panel
 
 		var rootItem = _tree.CreateItem();
 		rootItem.SetText(0, SolutionModel.Name);
+		rootItem.SetIcon(0, SlnIcon);
 
 		// Add projects directly under solution
 		foreach (var project in SolutionModel.Projects)
