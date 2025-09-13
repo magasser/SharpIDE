@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b2oniigcp5ew5"]
+[gd_scene load_steps=18 format=3 uid="uid://b2oniigcp5ew5"]
 
 [ext_resource type="FontFile" uid="uid://38igu11xwba6" path="res://Inter-VariableFont.ttf" id="1_7ptyn"]
 [ext_resource type="Script" uid="uid://bavypuy7b375x" path="res://IdeRoot.cs" id="1_whawi"]
@@ -16,6 +16,12 @@
 
 [sub_resource type="Theme" id="Theme_s2dv6"]
 default_font = ExtResource("1_7ptyn")
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_woo5i"]
+size = Vector2(0, 0)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_7ptyn"]
+size = Vector2(0, 0)
 
 [sub_resource type="FontVariation" id="FontVariation_y3aoi"]
 base_font = ExtResource("2_rk34b")
@@ -109,7 +115,9 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
+theme_override_constants/minimum_grab_thickness = 10
+theme_override_icons/grabber = SubResource("PlaceholderTexture2D_woo5i")
 split_offset = 402
 script = ExtResource("3_0ybuf")
 metadata/_custom_type_script = "uid://kvnhndc3l6ih"
@@ -117,7 +125,9 @@ metadata/_custom_type_script = "uid://kvnhndc3l6ih"
 [node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/HBoxContainer/InvertedVSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
+theme_override_constants/minimum_grab_thickness = 10
+theme_override_icons/grabber = SubResource("PlaceholderTexture2D_7ptyn")
 split_offset = 400
 
 [node name="SolutionExplorerPanel" parent="VBoxContainer/HBoxContainer/InvertedVSplitContainer/HSplitContainer" instance=ExtResource("5_s2dv6")]
