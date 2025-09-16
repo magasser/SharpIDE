@@ -8,10 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <IgnoresAccessChecksTo Include="Microsoft.VisualStudioCode.RazorExtension" />
-    <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem" />
+
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Remote.Razor" />
-    <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" />
+<!--    <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" />-->
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Razor.Compiler" />
   </ItemGroup>
 
