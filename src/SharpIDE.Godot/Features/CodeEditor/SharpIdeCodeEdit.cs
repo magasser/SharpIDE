@@ -275,7 +275,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		{
 			var linePos = new LinePosition(caretLine, caretColumn);
 			var codeActions = await RoslynAnalysis.GetCodeFixesForDocumentAtPosition(_currentFile, linePos);
-			Callable.From(() =>
+			await this.InvokeAsync(() =>
 			{
 				_popupMenu.Clear();
 				foreach (var (index, codeAction) in codeActions.Index())
@@ -287,7 +287,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 
 				if (codeActions.Length is not 0) _popupMenu.SetFocusedItem(0);
 				GD.Print($"Code fixes found: {codeActions.Length}, displaying menu");
-			}).CallDeferred();
+			});
 		});
 	}
 
