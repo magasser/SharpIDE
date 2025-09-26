@@ -16,11 +16,11 @@ public static class GodotGlobalEvents
     public static void InvokeBottomPanelVisibilityChangeRequested(bool show) => BottomPanelVisibilityChangeRequested.InvokeParallelFireAndForget(show);
     
     public static event Func<SharpIdeFile, SharpIdeFileLinePosition?, Task> FileSelected = (_, _) => Task.CompletedTask;
-    public static void InvokeFileSelected(SharpIdeFile file) => FileSelected.InvokeParallelFireAndForget(file);
+    public static void InvokeFileSelected(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition = null) => FileSelected.InvokeParallelFireAndForget(file, fileLinePosition);
     public static async Task InvokeFileSelectedAndWait(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition) => await FileSelected.InvokeParallelAsync(file, fileLinePosition);
     public static event Func<SharpIdeFile, SharpIdeFileLinePosition?, Task> FileExternallySelected = (_, _) => Task.CompletedTask;
     public static void InvokeFileExternallySelected(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition = null) => FileExternallySelected.InvokeParallelFireAndForget(file, fileLinePosition);
-    public static async Task InvokeFileExternallySelectedAndWait(SharpIdeFile file) => await FileExternallySelected.InvokeParallelAsync(file);
+    public static async Task InvokeFileExternallySelectedAndWait(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition = null) => await FileExternallySelected.InvokeParallelAsync(file, fileLinePosition);
     
 }
 
