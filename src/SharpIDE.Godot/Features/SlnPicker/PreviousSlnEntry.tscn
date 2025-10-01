@@ -1,0 +1,46 @@
+[gd_scene load_steps=3 format=3 uid="uid://x5lhwvh5dium"]
+
+[ext_resource type="Script" uid="uid://cnfj7yfseyikh" path="res://Features/SlnPicker/PreviousSlnEntry.cs" id="1_2ycpd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1rtjt"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.38039216, 1, 0.91764706, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="PreviousSlnEntry" type="HBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 10
+script = ExtResource("1_2ycpd")
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_1rtjt")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="SlnNameLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Solution Name"
+
+[node name="SlnPathLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5132329, 0.5132329, 0.5132329, 1)
+text = "C:\\Users\\Matthew\\Documents\\Git\\BlazorCodeBreaker\\BlazorCodeBreaker.slnx"
+
+[node name="Spacer" type="Control" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
