@@ -27,6 +27,14 @@ public partial class SlnPicker : Control
         var windowParent = GetParentOrNull<Window>();
         _fileDialog.FileSelected += path => _tcs.SetResult(path);
         windowParent?.CloseRequested += () => _tcs.SetResult(null);
+        if (Singletons.AppState.IdeSettings.AutoOpenLastSolution && GetParent() is not Window)
+        {
+            var lastSln = Singletons.AppState.RecentSlns.LastOrDefault();
+            if (lastSln is not null && File.Exists(lastSln.FilePath))
+            {
+                _tcs.TrySetResult(lastSln.FilePath);
+            }
+        }
         PopulatePreviousSolutions();
     }
     
@@ -37,7 +45,7 @@ public partial class SlnPicker : Control
         {
             var node = _previousSlnEntryScene.Instantiate<PreviousSlnEntry>();
             node.RecentSln = previousSln;
-            node.Clicked = path => _tcs.SetResult(path);
+            node.Clicked = path => _tcs.TrySetResult(path);
             _previousSlnsVBoxContainer.AddChild(node);
         }
     }
