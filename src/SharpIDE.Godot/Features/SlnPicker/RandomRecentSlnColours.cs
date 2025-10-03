@@ -33,10 +33,14 @@ public static class RandomRecentSlnColours
     {
         var hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(filePath));
 
-        // Convert first 4 bytes to an int
-        var hash = BitConverter.ToInt32(hashBytes, 0);
+        // Use all 16 bytes instead of just the first 4
+        var hash = BitConverter.ToUInt32(hashBytes, 12) ^
+                   BitConverter.ToUInt32(hashBytes, 8) ^
+                   BitConverter.ToUInt32(hashBytes, 4) ^
+                   BitConverter.ToUInt32(hashBytes, 0);
 
-        var index = Math.Abs(hash) % AllColours.Count;
+        var random = new Random((int)hash);
+        var index = random.Next(AllColours.Count);
         return AllColours[index];
     }
 }

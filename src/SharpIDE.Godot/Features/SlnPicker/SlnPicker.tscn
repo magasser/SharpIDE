@@ -107,6 +107,7 @@ layout_mode = 2
 [node name="ScrollContainer" type="ScrollContainer" parent="VSplitContainer/Panel/MarginContainer2/VBoxContainer2"]
 layout_mode = 2
 size_flags_vertical = 3
+follow_focus = true
 
 [node name="PreviousSlnsVBoxContainer" type="VBoxContainer" parent="VSplitContainer/Panel/MarginContainer2/VBoxContainer2/ScrollContainer"]
 unique_name_in_owner = true
