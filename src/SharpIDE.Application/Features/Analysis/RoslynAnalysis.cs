@@ -5,6 +5,7 @@ using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Completion;
@@ -29,7 +30,8 @@ namespace SharpIDE.Application.Features.Analysis;
 
 public static class RoslynAnalysis
 {
-	public static MSBuildWorkspace? _workspace;
+	public static AdhocWorkspace? _workspace;
+	private static MSBuildProjectLoader? _msBuildProjectLoader;
 	private static RemoteSnapshotManager? _snapshotManager;
 	private static RemoteSemanticTokensLegendService? _semanticTokensLegendService;
 	private static SharpIdeSolutionModel? _sharpIdeSolutionModel;
@@ -68,7 +70,7 @@ public static class RoslynAnalysis
 			var container = configuration.CreateContainer();
 
 			var host = MefHostServices.Create(container);
-			_workspace = MSBuildWorkspace.Create(host);
+			_workspace = new AdhocWorkspace(host);
 			_workspace.RegisterWorkspaceFailedHandler(o => throw new InvalidOperationException($"Workspace failed: {o.Diagnostic.Message}"));
 
 			var snapshotManager = container.GetExports<RemoteSnapshotManager>().FirstOrDefault();
@@ -76,10 +78,14 @@ public static class RoslynAnalysis
 
 			_semanticTokensLegendService = container.GetExports<RemoteSemanticTokensLegendService>().FirstOrDefault();
 			_semanticTokensLegendService!.SetLegend(TokenTypeProvider.ConstructTokenTypes(false), TokenTypeProvider.ConstructTokenModifiers());
+
+			_msBuildProjectLoader = new MSBuildProjectLoader(_workspace);
 		}
 		using (var ___ = SharpIdeOtel.Source.StartActivity("OpenSolution"))
 		{
-			var solution = await _workspace.OpenSolutionAsync(_sharpIdeSolutionModel.FilePath, new Progress());
+			var solutionInfo = await _msBuildProjectLoader!.LoadSolutionInfoAsync(_sharpIdeSolutionModel.FilePath);
+			_workspace.ClearSolution();
+			var solution = _workspace.AddSolution(solutionInfo);
 		}
 		timer.Stop();
 		Console.WriteLine($"RoslynAnalysis: Solution loaded in {timer.ElapsedMilliseconds}ms");
@@ -427,27 +433,49 @@ public static class RoslynAnalysis
 		return completions;
 	}
 
-	public static async Task ApplyCodeActionAsync(CodeAction codeAction)
+	/// Returns the list of files modified by applying the code action
+	public static async Task<List<(SharpIdeFile File, string UpdatedText)>> ApplyCodeActionAsync(CodeAction codeAction)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(ApplyCodeActionAsync)}");
 		var cancellationToken = CancellationToken.None;
 		var operations = await codeAction.GetOperationsAsync(cancellationToken);
+		var changedDocumentIds = new List<DocumentId>();
 		foreach (var operation in operations)
 		{
-			operation.Apply(_workspace!, cancellationToken);
-			// if (operation is ApplyChangesOperation applyChangesOperation)
-			// {
-			// 	var newSolution = applyChangesOperation.ChangedSolution;
-			// 	_workspace.TryApplyChanges(newSolution);
-			// }
-			// else
-			// {
-			// 	throw new NotSupportedException($"Unsupported operation type: {operation.GetType().Name}");
-			// }
+			if (operation is ApplyChangesOperation applyChangesOperation)
+			{
+				var newSolution = applyChangesOperation.ChangedSolution;
+				var changedDocIds = newSolution
+					.GetChanges(_workspace!.CurrentSolution)
+					.GetProjectChanges()
+					.SelectMany(s => s.GetChangedDocuments());
+				changedDocumentIds.AddRange(changedDocIds);
+
+				_workspace.TryApplyChanges(newSolution);
+			}
+			else
+			{
+				throw new NotSupportedException($"Unsupported operation type: {operation.GetType().Name}");
+			}
 		}
+
+		var changedFilesWithText = await changedDocumentIds
+			.DistinctBy(s => s.Id)
+			.Select(id => _workspace!.CurrentSolution.GetDocument(id))
+			.Where(d => d is not null)
+			.OfType<Document>() // ensures non-null
+			.ToAsyncEnumerable()
+			.Select(async (Document doc, CancellationToken ct) =>
+			{
+				var text = await doc.GetTextAsync(ct);
+				var sharpFile = _sharpIdeSolutionModel!.AllFiles.Single(f => f.Path == doc.FilePath);
+				return (sharpFile, text.ToString());
+			})
+			.ToListAsync(cancellationToken);
+
+		return changedFilesWithText;
 	}
 
-	// TODO: Use AdhocWorkspace or something else, to avoid writing to disk on every change
 	public static void UpdateDocument(SharpIdeFile fileModel, string newContent)
 	{
 		Guard.Against.Null(fileModel, nameof(fileModel));

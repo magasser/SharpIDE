@@ -1,5 +1,6 @@
 using Ardalis.GuardClauses;
 using Godot;
+using R3;
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Debugging;
 using SharpIDE.Application.Features.Events;
@@ -73,6 +74,16 @@ public partial class CodeEditorPanel : MarginContainer
             _tabContainer.SetTabTitle(newTabIndex, file.Name);
             _tabContainer.SetTabTooltip(newTabIndex, file.Path);
             _tabContainer.CurrentTab = newTabIndex;
+        });
+        file.IsDirty.Skip(1).SubscribeOnThreadPool().SubscribeAwait(async (isDirty, ct) =>
+        {
+            //GD.Print($"File dirty state changed: {file.Path} is now {(isDirty ? "dirty" : "clean")}");
+            await this.InvokeAsync(() =>
+            {
+                var tabIndex = newTab.GetIndex();
+                var title = file.Name + (isDirty ? " (*)" : "");
+                _tabContainer.SetTabTitle(tabIndex, title);
+            });
         });
         await newTab.SetSharpIdeFile(file);
         if (fileLinePosition is not null) await this.InvokeAsync(() => newTab.SetFileLinePosition(fileLinePosition.Value));

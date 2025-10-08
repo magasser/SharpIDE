@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Build;
 using SharpIDE.Application.Features.Events;
+using SharpIDE.Application.Features.FilePersistence;
 using SharpIDE.Application.Features.FileWatching;
 using SharpIDE.Application.Features.Run;
 using SharpIDE.Application.Features.SolutionDiscovery;
@@ -45,6 +46,7 @@ public partial class IdeRoot : Control
 		Singletons.BuildService = new BuildService();
 		Singletons.FileWatcher?.Dispose();
 		Singletons.FileWatcher = new IdeFileWatcher();
+		Singletons.FileManager = new IdeFileManager();
 	}
 
 	public override void _Ready()

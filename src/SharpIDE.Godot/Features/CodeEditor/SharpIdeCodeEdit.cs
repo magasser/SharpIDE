@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Ardalis.GuardClauses;
 using Godot;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
@@ -93,10 +92,11 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		GD.Print($"Selection changed to line {_currentLine}, start {_selectionStartCol}, end {_selectionEndCol}");
 	}
 
-	private void OnTextChanged()
+	private async void OnTextChanged()
 	{
-		// update the MSBuildWorkspace
-		RoslynAnalysis.UpdateDocument(_currentFile, Text);
+		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+		_currentFile.IsDirty.Value = true;
+		Singletons.FileManager.UpdateFileTextInMemory(_currentFile, Text);
 		_ = Task.GodotRun(async () =>
 		{
 			var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
@@ -122,8 +122,12 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		var vScroll = GetVScroll();
 		_ = Task.GodotRun(async () =>
 		{
-			await RoslynAnalysis.ApplyCodeActionAsync(codeAction);
-			var fileContents = await File.ReadAllTextAsync(_currentFile.Path);
+			var affectedFiles = await RoslynAnalysis.ApplyCodeActionAsync(codeAction);
+			foreach (var (affectedFile, updatedText) in affectedFiles)
+			{
+				await Singletons.FileManager.UpdateInMemoryIfOpenAndSaveAsync(affectedFile, updatedText);
+			}
+			var fileContents = await Singletons.FileManager.GetFileTextAsync(_currentFile);
 			var syntaxHighlighting = await RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
 			var razorSyntaxHighlighting = await RoslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
 			var diagnostics = await RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
@@ -156,7 +160,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding); // get off the UI thread
 		_currentFile = file;
-		var readFileTask = File.ReadAllTextAsync(_currentFile.Path);
+		var readFileTask = Singletons.FileManager.GetFileTextAsync(file);
 		
 		var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
 		var razorSyntaxHighlighting = RoslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
@@ -233,6 +237,20 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		if (@event.IsActionPressed(InputStringNames.CodeFixes))
 		{
 			EmitSignalCodeFixesRequested();
+		}
+		else if (@event.IsActionPressed(InputStringNames.SaveAllFiles))
+		{
+			_ = Task.GodotRun(async () =>
+			{
+				await Singletons.FileManager.SaveAllOpenFilesAsync();
+			});
+		}
+		else if (@event.IsActionPressed(InputStringNames.SaveFile))
+		{
+			_ = Task.GodotRun(async () =>
+			{
+				await Singletons.FileManager.SaveFileAsync(_currentFile);
+			});
 		}
 	}
 

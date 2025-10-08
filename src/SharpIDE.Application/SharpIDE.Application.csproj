@@ -45,6 +45,7 @@
     <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="ObservableCollections" />
+    <PackageReference Include="R3" />
   </ItemGroup>
 
   <ItemGroup>

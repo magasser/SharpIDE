@@ -130,7 +130,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 
 		foreach (var sharpIdeFolder in project.Folders)
 		{
-			AddFoldertoTree(projectItem, sharpIdeFolder);
+			AddFolderToTree(projectItem, sharpIdeFolder);
 		}
 
 		foreach (var file in project.Files)
@@ -139,7 +139,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 		}
 	}
 
-	private void AddFoldertoTree(TreeItem projectItem, SharpIdeFolder sharpIdeFolder)
+	private void AddFolderToTree(TreeItem projectItem, SharpIdeFolder sharpIdeFolder)
 	{
 		var folderItem = _tree.CreateItem(projectItem);
 		folderItem.SetText(0, sharpIdeFolder.Name);
@@ -147,7 +147,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 
 		foreach (var subFolder in sharpIdeFolder.Folders)
 		{
-			AddFoldertoTree(folderItem, subFolder); // recursion
+			AddFolderToTree(folderItem, subFolder); // recursion
 		}
 
 		foreach (var file in sharpIdeFolder.Files)
