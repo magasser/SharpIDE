@@ -358,6 +358,7 @@ public static partial class SymbolInfoComponents
             {SpecialType: not SpecialType.None} => label.AddSpecialType(symbol),
             INamedTypeSymbol namedTypeSymbol => label.AddNamedType(namedTypeSymbol),
             ITypeParameterSymbol typeParameterSymbol => label.AddTypeParameter(typeParameterSymbol),
+            IArrayTypeSymbol arrayTypeSymbol => label.AddArrayType(arrayTypeSymbol),
             _ => label.AddUnknownType(symbol)
         };
     }
@@ -368,6 +369,13 @@ public static partial class SymbolInfoComponents
         label.AddText("[UNKNOWN TYPE]");
         label.AddText(symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
         label.Pop();
+        return label;
+    }
+    
+    private static RichTextLabel AddArrayType(this RichTextLabel label, IArrayTypeSymbol symbol)
+    {
+        label.AddType(symbol.ElementType);
+        label.AddText("[]");
         return label;
     }
 
