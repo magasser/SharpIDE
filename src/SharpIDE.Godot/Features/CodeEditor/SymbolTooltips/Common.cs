@@ -357,6 +357,7 @@ public static partial class SymbolInfoComponents
         _ = symbol switch
         {
             {SpecialType: not SpecialType.None} => label.AddSpecialType(symbol),
+            INamedTypeSymbol {OriginalDefinition.SpecialType: SpecialType.System_Nullable_T} nullableValueTypeSymbol => label.AddNullableValueType(nullableValueTypeSymbol),
             INamedTypeSymbol namedTypeSymbol => label.AddNamedType(namedTypeSymbol),
             ITypeParameterSymbol typeParameterSymbol => label.AddTypeParameter(typeParameterSymbol),
             IArrayTypeSymbol arrayTypeSymbol => label.AddArrayType(arrayTypeSymbol),
@@ -407,6 +408,14 @@ public static partial class SymbolInfoComponents
             label.AddText(">");
         }
         label.Pop(); // meta
+        return label;
+    }
+    
+    private static RichTextLabel AddNullableValueType(this RichTextLabel label, INamedTypeSymbol symbol)
+    {
+        var typeArg = symbol.TypeArguments[0];
+        label.AddType(typeArg);
+        label.AddText("?");
         return label;
     }
 
