@@ -5,7 +5,7 @@ namespace SharpIDE.Godot.Features.CodeEditor;
 
 public static partial class SymbolInfoComponents
 {
-    public static Control GetLocalVariableSymbolInfo(ILocalSymbol symbol)
+    public static RichTextLabel GetLocalVariableSymbolInfo(ILocalSymbol symbol)
     {
         var label = new RichTextLabel();
         label.FitContent = true;

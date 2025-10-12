@@ -5,7 +5,7 @@ namespace SharpIDE.Godot.Features.CodeEditor;
 
 public static partial class SymbolInfoComponents
 {
-    public static Control GetNamedTypeSymbolInfo(INamedTypeSymbol symbol)
+    public static RichTextLabel GetNamedTypeSymbolInfo(INamedTypeSymbol symbol)
     {
         var label = new RichTextLabel();
         label.FitContent = true;

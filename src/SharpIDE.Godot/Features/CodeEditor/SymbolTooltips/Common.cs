@@ -10,7 +10,7 @@ public static partial class SymbolInfoComponents
 {
     private static readonly FontVariation MonospaceFont = ResourceLoader.Load<FontVariation>("uid://cctwlwcoycek7");
     
-    public static Control GetUnknownTooltip(ISymbol symbol)
+    public static RichTextLabel GetUnknownTooltip(ISymbol symbol)
     {
         var label = new RichTextLabel();
         label.FitContent = true;
