@@ -128,7 +128,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		{
 			IMethodSymbol methodSymbol => SymbolInfoComponents.GetMethodSymbolInfo(methodSymbol),
 			INamedTypeSymbol namedTypeSymbol => new Control(),
-			IPropertySymbol propertySymbol => new Control(),
+			IPropertySymbol propertySymbol => SymbolInfoComponents.GetPropertySymbolInfo(propertySymbol),
 			IFieldSymbol fieldSymbol => SymbolInfoComponents.GetFieldSymbolInfo(fieldSymbol),
 			IParameterSymbol parameterSymbol => new Control(),
 			_ => new Control()

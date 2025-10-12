@@ -31,7 +31,7 @@ public static partial class SymbolInfoComponents
         return label;
     }
     
-    private static void AddStaticModifier(this RichTextLabel label, IFieldSymbol symbol)
+    private static void AddStaticModifier(this RichTextLabel label, ISymbol symbol)
     {
         if (symbol.IsStatic)
         {

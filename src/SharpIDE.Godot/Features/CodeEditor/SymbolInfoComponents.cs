@@ -20,7 +20,7 @@ public static partial class SymbolInfoComponents
         label.AddAttributes(methodSymbol);
         label.AddAccessibilityModifier(methodSymbol);
         label.AddText(" ");
-        label.AddStaticModifier(methodSymbol);
+        label.AddMethodStaticModifier(methodSymbol);
         label.AddVirtualModifier(methodSymbol);
         label.AddAbstractModifier(methodSymbol);
         label.AddOverrideModifier(methodSymbol);
@@ -58,7 +58,7 @@ public static partial class SymbolInfoComponents
         label.Pop();
     }
     
-    private static void AddStaticModifier(this RichTextLabel label, IMethodSymbol methodSymbol)
+    private static void AddMethodStaticModifier(this RichTextLabel label, IMethodSymbol methodSymbol)
     {
         if (methodSymbol.IsStatic || methodSymbol.ReducedFrom?.IsStatic is true)
         {
