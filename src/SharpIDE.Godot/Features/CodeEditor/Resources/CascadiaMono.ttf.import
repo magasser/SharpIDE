@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://7jc0nj310cu6"
-path="res://.godot/imported/CascadiaCode.ttf-5e3ebf31bcbff2dc86863da4d4420804.fontdata"
+uid="uid://bkibovvrnhwtt"
+path="res://.godot/imported/CascadiaMono.ttf-be6256f09a2e48cc565464da7ea26705.fontdata"
 
 [deps]
 
-source_file="res://Features/CodeEditor/Resources/CascadiaCode.ttf"
-dest_files=["res://.godot/imported/CascadiaCode.ttf-5e3ebf31bcbff2dc86863da4d4420804.fontdata"]
+source_file="res://Features/CodeEditor/Resources/CascadiaMono.ttf"
+dest_files=["res://.godot/imported/CascadiaMono.ttf-be6256f09a2e48cc565464da7ea26705.fontdata"]
 
 [params]
 
