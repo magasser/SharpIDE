@@ -6,21 +6,24 @@ using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 namespace SharpIDE.Application.Features.FileWatching;
 
-public class IdeFileChangeHandler
+public class IdeFileSavedToDiskHandler
 {
 	public SharpIdeSolutionModel SolutionModel { get; set; } = null!;
 
-	public IdeFileChangeHandler()
+	public IdeFileSavedToDiskHandler()
 	{
-		GlobalEvents.Instance.IdeFileChanged.Subscribe(HandleIdeFileChanged);
+		GlobalEvents.Instance.IdeFileSavedToDisk.Subscribe(HandleIdeFileChanged);
 	}
 
 	private async Task HandleIdeFileChanged(SharpIdeFile file)
 	{
-		await file.FileContentsChangedExternallyFromDisk.InvokeParallelAsync();
 		if (file.IsCsprojFile)
 		{
 			await HandleCsprojChanged(file);
+		}
+		else if (file.IsRoslynWorkspaceFile)
+		{
+			await HandleWorkspaceFileChanged(file);
 		}
 	}
 
@@ -30,6 +33,11 @@ public class IdeFileChangeHandler
 		if (project is null) return;
 		await ProjectEvaluation.ReloadProject(file.Path);
 		await RoslynAnalysis.ReloadProject(project);
+		await RoslynAnalysis.UpdateSolutionDiagnostics();
+	}
+
+	private async Task HandleWorkspaceFileChanged(SharpIdeFile file)
+	{
 		await RoslynAnalysis.UpdateSolutionDiagnostics();
 	}
 }

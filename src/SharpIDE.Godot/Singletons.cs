@@ -13,6 +13,6 @@ public static class Singletons
     public static IdeFileWatcher FileWatcher { get; set; } = null!;
     public static IdeFileManager FileManager { get; set; } = null!;
     public static IdeFileExternalChangeHandler FileExternalChangeHandler { get; set; } = null!;
-    public static IdeFileChangeHandler FileChangeHandler { get; set; } = null!;
+    public static IdeFileSavedToDiskHandler FileSavedToDiskHandler { get; set; } = null!;
     public static AppState AppState { get; set; } = null!;
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using SharpIDE.Application.Features.Analysis;
+using SharpIDE.Application.Features.Events;
 using SharpIDE.Application.Features.SolutionDiscovery;
 
 namespace SharpIDE.Application.Features.FilePersistence;
@@ -59,6 +60,7 @@ public class IdeFileManager
 		var text = await GetFileTextAsync(file);
 		await WriteAllText(file, text);
 		file.IsDirty.Value = false;
+		GlobalEvents.Instance.IdeFileSavedToDisk.InvokeParallelFireAndForget(file);
 	}
 
 	public async Task UpdateInMemoryIfOpenAndSaveAsync(SharpIdeFile file, string newText)

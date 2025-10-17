@@ -51,7 +51,7 @@ public partial class IdeRoot : Control
 		Singletons.FileWatcher = new IdeFileWatcher();
 		Singletons.FileManager = new IdeFileManager();
 		Singletons.FileExternalChangeHandler = new IdeFileExternalChangeHandler();
-		Singletons.FileChangeHandler = new IdeFileChangeHandler();
+		Singletons.FileSavedToDiskHandler = new IdeFileSavedToDiskHandler();
 	}
 
 	public override void _Ready()
@@ -129,7 +129,7 @@ public partial class IdeRoot : Control
 			_searchWindow.Solution = solutionModel;
 			_searchAllFilesWindow.Solution = solutionModel;
 			Singletons.FileExternalChangeHandler.SolutionModel = solutionModel;
-			Singletons.FileChangeHandler.SolutionModel = solutionModel;
+			Singletons.FileSavedToDiskHandler.SolutionModel = solutionModel;
 			Callable.From(_solutionExplorerPanel.RepopulateTree).CallDeferred();
 			RoslynAnalysis.StartSolutionAnalysis(solutionModel);
 			Singletons.FileWatcher.StartWatching(solutionModel);

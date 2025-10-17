@@ -31,7 +31,8 @@ public class IdeFileExternalChangeHandler
 		var file = SolutionModel.AllFiles.SingleOrDefault(f => f.Path == filePath);
 		if (file is not null)
 		{
-			await GlobalEvents.Instance.IdeFileChanged.InvokeParallelAsync(file);
+			await file.FileContentsChangedExternallyFromDisk.InvokeParallelAsync();
+			await GlobalEvents.Instance.IdeFileSavedToDisk.InvokeParallelAsync(file);
 		}
 	}
 }
