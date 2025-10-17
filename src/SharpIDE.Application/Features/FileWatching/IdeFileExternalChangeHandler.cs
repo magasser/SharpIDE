@@ -23,24 +23,15 @@ public class IdeFileExternalChangeHandler
 			var now = DateTimeOffset.Now;
 			if (now - sharpIdeFile.LastIdeWriteTime.Value < TimeSpan.FromMilliseconds(300))
 			{
-				Console.WriteLine($"IdeFileChangeHandler: Ignored - {filePath}");
+				Console.WriteLine($"IdeFileExternalChangeHandler: Ignored - {filePath}");
 				return;
 			}
 		}
-		Console.WriteLine($"IdeFileChangeHandler: Changed - {filePath}");
-		await sharpIdeFile.FileContentsChangedExternallyFromDisk.InvokeParallelAsync();
-		if (sharpIdeFile.IsCsprojFile)
+		Console.WriteLine($"IdeFileExternalChangeHandler: Changed - {filePath}");
+		var file = SolutionModel.AllFiles.SingleOrDefault(f => f.Path == filePath);
+		if (file is not null)
 		{
-			await HandleCsprojChanged(filePath);
+			await GlobalEvents.Instance.IdeFileChanged.InvokeParallelAsync(file);
 		}
-	}
-
-	private async Task HandleCsprojChanged(string filePath)
-	{
-		var project = SolutionModel.AllProjects.SingleOrDefault(p => p.FilePath == filePath);
-		if (project is null) return;
-		await ProjectEvaluation.ReloadProject(filePath);
-		await RoslynAnalysis.ReloadProject(project);
-		await RoslynAnalysis.UpdateSolutionDiagnostics();
 	}
 }

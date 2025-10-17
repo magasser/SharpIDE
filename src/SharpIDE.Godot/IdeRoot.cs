@@ -51,6 +51,7 @@ public partial class IdeRoot : Control
 		Singletons.FileWatcher = new IdeFileWatcher();
 		Singletons.FileManager = new IdeFileManager();
 		Singletons.FileExternalChangeHandler = new IdeFileExternalChangeHandler();
+		Singletons.FileChangeHandler = new IdeFileChangeHandler();
 	}
 
 	public override void _Ready()

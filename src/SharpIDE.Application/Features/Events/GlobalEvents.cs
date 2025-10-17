@@ -1,4 +1,5 @@
 ﻿using SharpIDE.Application.Features.Debugging;
+using SharpIDE.Application.Features.SolutionDiscovery;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 namespace SharpIDE.Application.Features.Events;
@@ -13,6 +14,8 @@ public class GlobalEvents
 	public EventWrapper<SharpIdeProjectModel, Task> ProjectStartedRunning { get; } = new(_ => Task.CompletedTask);
 	public EventWrapper<SharpIdeProjectModel, Task> ProjectStoppedRunning { get; } = new(_ => Task.CompletedTask);
 	public EventWrapper<ExecutionStopInfo, Task> DebuggerExecutionStopped { get; } = new(_ => Task.CompletedTask);
+	/// Meaning saved/persisted to disk
+	public EventWrapper<SharpIdeFile, Task> IdeFileChanged { get; } = new(_ => Task.CompletedTask);
 
 	public FileSystemWatcherInternal FileSystemWatcherInternal { get; } = new();
 }

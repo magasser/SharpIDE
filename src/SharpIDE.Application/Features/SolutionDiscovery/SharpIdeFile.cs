@@ -12,13 +12,14 @@ public class SharpIdeFile : ISharpIdeNode, IChildSharpIdeNode
 	public required string Path { get; set; }
 	public required string Name { get; set; }
 	public bool IsRazorFile => Path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase);
+	public bool IsCsprojFile => Path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase);
 	public bool IsCshtmlFile => Path.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase);
 	public bool IsCsharpFile => Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 	public bool IsRoslynWorkspaceFile => IsCsharpFile || IsRazorFile || IsCshtmlFile;
 	public required ReactiveProperty<bool> IsDirty { get; init; }
 	public required bool SuppressDiskChangeEvents { get; set; } // probably has concurrency issues
 	public required DateTimeOffset? LastIdeWriteTime { get; set; }
-	public EventWrapper<Task> FileContentsChangedExternallyFromDisk { get; } = new(() => Task.CompletedTask);
+	public EventWrapper<Task> FileContentsChangedExternallyFromDisk { get; } = new(() => Task.CompletedTask); // Refactor to global event - this currently doesn't handle updating un-opened files
 	public EventWrapper<Task> FileContentsChangedExternally { get; } = new(() => Task.CompletedTask);
 
 	[SetsRequiredMembers]
