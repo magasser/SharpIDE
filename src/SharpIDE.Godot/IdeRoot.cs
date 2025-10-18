@@ -43,6 +43,7 @@ public partial class IdeRoot : Control
 	[Inject] private readonly IdeFileWatcher _fileWatcher = null!;
 	[Inject] private readonly BuildService _buildService = null!;
     [Inject] private readonly IdeOpenTabsFileManager _openTabsFileManager = null!;
+    [Inject] private readonly RoslynAnalysis _roslynAnalysis = null!;
 
 	public override void _EnterTree()
 	{
@@ -141,7 +142,7 @@ public partial class IdeRoot : Control
 			_fileExternalChangeHandler.SolutionModel = solutionModel;
 			_savedToDiskHandler.SolutionModel = solutionModel;
 			Callable.From(_solutionExplorerPanel.RepopulateTree).CallDeferred();
-			RoslynAnalysis.StartSolutionAnalysis(solutionModel);
+			_roslynAnalysis.StartSolutionAnalysis(solutionModel);
 			_fileWatcher.StartWatching(solutionModel);
 			
 			var infraProject = solutionModel.AllProjects.SingleOrDefault(s => s.Name == "WebUi");

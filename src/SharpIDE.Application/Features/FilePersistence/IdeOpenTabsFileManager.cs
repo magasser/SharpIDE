@@ -7,8 +7,10 @@ namespace SharpIDE.Application.Features.FilePersistence;
 #pragma warning disable VSTHRD011
 
 /// Holds the in memory copies of files, and manages saving/loading them to/from disk.
-public class IdeOpenTabsFileManager
+public class IdeOpenTabsFileManager(RoslynAnalysis roslynAnalysis)
 {
+	private readonly RoslynAnalysis _roslynAnalysis = roslynAnalysis;
+
 	private ConcurrentDictionary<SharpIdeFile, Lazy<Task<string>>> _openFiles = new();
 
 	/// Implicitly 'opens' a file if not already open, and returns the text.
@@ -34,7 +36,7 @@ public class IdeOpenTabsFileManager
 		// Potentially should be event based?
 		if (file.IsRoslynWorkspaceFile)
 		{
-			await RoslynAnalysis.UpdateDocument(file, newText);
+			await _roslynAnalysis.UpdateDocument(file, newText);
 			GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
 		}
 	}

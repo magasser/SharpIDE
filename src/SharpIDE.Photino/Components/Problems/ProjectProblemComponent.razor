@@ -4,6 +4,8 @@
 @using SharpIDE.Application.Features.SolutionDiscovery
 @using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence
 
+@inject RoslynAnalysis RoslynAnalysis
+
 @if (_diagnostics.Length is not 0)
 {
 	<MudTreeViewItem T="string" TextTypo="Typo.body2" EndTextTypo="Typo.caption" Expanded="false" Icon="@Icons.Material.Filled.Code" IconColor="Color.Success" Value="@ProjectModel.Name" Text="@ProjectModel.Name" EndText="@($"{_diagnostics.Length} diagnostics")">

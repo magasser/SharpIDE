@@ -43,7 +43,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 	
     [Inject] private readonly IdeOpenTabsFileManager _openTabsFileManager = null!;
     [Inject] private readonly RunService _runService = null!;
-    
+    [Inject] private readonly RoslynAnalysis _roslynAnalysis = null!;
 	
 	public override void _Ready()
 	{
@@ -66,9 +66,9 @@ public partial class SharpIdeCodeEdit : CodeEdit
 	{
 		if (_currentFile is null) return;
 		GD.Print("Solution altered, updating project diagnostics for current file");
-		var documentDiagnostics = await RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
+		var documentDiagnostics = await _roslynAnalysis.GetDocumentDiagnostics(_currentFile);
 		await this.InvokeAsync(() => SetDiagnostics(documentDiagnostics));
-		var projectDiagnostics = await RoslynAnalysis.GetProjectDiagnosticsForFile(_currentFile);
+		var projectDiagnostics = await _roslynAnalysis.GetProjectDiagnosticsForFile(_currentFile);
 		await this.InvokeAsync(() => SetProjectDiagnostics(projectDiagnostics));
 	}
 
@@ -153,7 +153,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		var lineHeight = GetLineHeight();
 		GD.Print($"Symbol hovered: {symbol} at line {line}, column {column}");
 		
-		var (roslynSymbol, linePositionSpan) = await RoslynAnalysis.LookupSymbol(_currentFile, new LinePosition((int)line, (int)column));
+		var (roslynSymbol, linePositionSpan) = await _roslynAnalysis.LookupSymbol(_currentFile, new LinePosition((int)line, (int)column));
 		if (roslynSymbol is null || linePositionSpan is null)
 		{
 			return;
@@ -277,15 +277,15 @@ public partial class SharpIdeCodeEdit : CodeEdit
 			_textChangedCts = new CancellationTokenSource();
 			_ = Task.GodotRun(async () =>
 			{
-				var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile, _textChangedCts.Token);
-				var razorSyntaxHighlighting = RoslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile, _textChangedCts.Token);
+				var syntaxHighlighting = _roslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile, _textChangedCts.Token);
+				var razorSyntaxHighlighting = _roslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile, _textChangedCts.Token);
 				await Task.WhenAll(syntaxHighlighting, razorSyntaxHighlighting);
 				await this.InvokeAsync(async () => SetSyntaxHighlightingModel(await syntaxHighlighting, await razorSyntaxHighlighting));
 				__?.Dispose();
 			});
 			_ = Task.GodotRun(async () =>
 			{
-				var documentDiagnostics = await RoslynAnalysis.GetDocumentDiagnostics(_currentFile, _textChangedCts.Token);
+				var documentDiagnostics = await _roslynAnalysis.GetDocumentDiagnostics(_currentFile, _textChangedCts.Token);
 				await this.InvokeAsync(() => SetDiagnostics(documentDiagnostics));
 			});
 		});
@@ -300,7 +300,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		
 		_ = Task.GodotRun(async () =>
 		{
-			var affectedFiles = await RoslynAnalysis.ApplyCodeActionAsync(codeAction);
+			var affectedFiles = await _roslynAnalysis.ApplyCodeActionAsync(codeAction);
 			// TODO: This can be more efficient - we can just update in memory and proceed with highlighting etc. Save to disk in background.
 			foreach (var (affectedFile, updatedText) in affectedFiles)
 			{
@@ -313,9 +313,9 @@ public partial class SharpIdeCodeEdit : CodeEdit
 	private async Task OnFileChangedExternallyInMemory()
 	{
 		var fileContents = await _openTabsFileManager.GetFileTextAsync(_currentFile);
-		var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
-		var razorSyntaxHighlighting = RoslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
-		var diagnostics = RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
+		var syntaxHighlighting = _roslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
+		var razorSyntaxHighlighting = _roslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
+		var diagnostics = _roslynAnalysis.GetDocumentDiagnostics(_currentFile);
 		await Task.WhenAll(syntaxHighlighting, razorSyntaxHighlighting, diagnostics);
 		Callable.From(() =>
 		{
@@ -351,10 +351,10 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		_currentFile.FileContentsChangedExternally.Subscribe(OnFileChangedExternallyInMemory);
 		_currentFile.FileContentsChangedExternallyFromDisk.Subscribe(OnFileChangedExternallyFromDisk);
 		
-		var syntaxHighlighting = RoslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
-		var razorSyntaxHighlighting = RoslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
-		var diagnostics = RoslynAnalysis.GetDocumentDiagnostics(_currentFile);
-		var projectDiagnosticsForFile = RoslynAnalysis.GetProjectDiagnosticsForFile(_currentFile);
+		var syntaxHighlighting = _roslynAnalysis.GetDocumentSyntaxHighlighting(_currentFile);
+		var razorSyntaxHighlighting = _roslynAnalysis.GetRazorDocumentSyntaxHighlighting(_currentFile);
+		var diagnostics = _roslynAnalysis.GetDocumentDiagnostics(_currentFile);
+		var projectDiagnosticsForFile = _roslynAnalysis.GetProjectDiagnosticsForFile(_currentFile);
 		var setTextTask = this.InvokeAsync(async () =>
 		{
 			_fileChangingSuppressBreakpointToggleEvent = true;
@@ -503,7 +503,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		_ = Task.GodotRun(async () =>
 		{
 			var linePos = new LinePosition(caretLine, caretColumn);
-			var codeActions = await RoslynAnalysis.GetCodeFixesForDocumentAtPosition(_currentFile, linePos);
+			var codeActions = await _roslynAnalysis.GetCodeFixesForDocumentAtPosition(_currentFile, linePos);
 			await this.InvokeAsync(() =>
 			{
 				_popupMenu.Clear();
@@ -529,7 +529,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		{
 			var linePos = new LinePosition(caretLine, caretColumn);
 				
-			var completions = await RoslynAnalysis.GetCodeCompletionsForDocumentAtPosition(_currentFile, linePos);
+			var completions = await _roslynAnalysis.GetCodeCompletionsForDocumentAtPosition(_currentFile, linePos);
 			await this.InvokeAsync(() =>
 			{
 				foreach (var completionItem in completions.ItemsList)

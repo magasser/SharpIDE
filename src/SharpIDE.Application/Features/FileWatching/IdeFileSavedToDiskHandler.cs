@@ -10,11 +10,13 @@ namespace SharpIDE.Application.Features.FileWatching;
 public class IdeFileSavedToDiskHandler
 {
 	private readonly IdeOpenTabsFileManager _openTabsFileManager;
+	private readonly RoslynAnalysis _roslynAnalysis;
 	public SharpIdeSolutionModel SolutionModel { get; set; } = null!;
 
-	public IdeFileSavedToDiskHandler(IdeOpenTabsFileManager openTabsFileManager)
+	public IdeFileSavedToDiskHandler(IdeOpenTabsFileManager openTabsFileManager, RoslynAnalysis roslynAnalysis)
 	{
 		_openTabsFileManager = openTabsFileManager;
+		_roslynAnalysis = roslynAnalysis;
 		GlobalEvents.Instance.IdeFileSavedToDisk.Subscribe(HandleIdeFileChanged);
 	}
 
@@ -35,8 +37,8 @@ public class IdeFileSavedToDiskHandler
 		var project = SolutionModel.AllProjects.SingleOrDefault(p => p.FilePath == file.Path);
 		if (project is null) return;
 		await ProjectEvaluation.ReloadProject(file.Path);
-		await RoslynAnalysis.ReloadProject(project);
-		await RoslynAnalysis.UpdateSolutionDiagnostics();
+		await _roslynAnalysis.ReloadProject(project);
+		await _roslynAnalysis.UpdateSolutionDiagnostics();
 	}
 
 	private async Task HandleWorkspaceFileChanged(SharpIdeFile file)
@@ -48,9 +50,9 @@ public class IdeFileSavedToDiskHandler
 			var fileText = wasOpenAndUpdated ?
 				await _openTabsFileManager.GetFileTextAsync(file) :
 				await File.ReadAllTextAsync(file.Path);
-			await RoslynAnalysis.UpdateDocument(file, fileText);
+			await _roslynAnalysis.UpdateDocument(file, fileText);
 			GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
 		}
-		await RoslynAnalysis.UpdateSolutionDiagnostics();
+		await _roslynAnalysis.UpdateSolutionDiagnostics();
 	}
 }

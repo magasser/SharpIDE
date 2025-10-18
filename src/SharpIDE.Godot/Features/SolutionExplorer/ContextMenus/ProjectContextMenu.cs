@@ -21,6 +21,7 @@ file enum ProjectContextMenuOptions
 public partial class SolutionExplorerPanel
 {
     private Texture2D _runIcon = ResourceLoader.Load<Texture2D>("uid://bkty6563cthj8");
+    
     [Inject] private readonly BuildService _buildService = null!;
     [Inject] private readonly RunService _runService = null!;
 

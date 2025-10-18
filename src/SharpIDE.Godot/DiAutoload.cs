@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Build;
 using SharpIDE.Application.Features.FilePersistence;
 using SharpIDE.Application.Features.FileWatching;
@@ -27,6 +28,7 @@ public partial class DiAutoload : Node
         services.AddScoped<IdeFileSavedToDiskHandler>();
         services.AddScoped<IdeFileWatcher>();
         services.AddScoped<IdeOpenTabsFileManager>();
+        services.AddScoped<RoslynAnalysis>();
 
         _serviceProvider = services.BuildServiceProvider();
         GetTree().NodeAdded += OnNodeAdded;

@@ -29,17 +29,18 @@ using DiagnosticSeverity = Microsoft.CodeAnalysis.DiagnosticSeverity;
 
 namespace SharpIDE.Application.Features.Analysis;
 
-public static class RoslynAnalysis
+public class RoslynAnalysis
 {
 	public static AdhocWorkspace? _workspace;
 	private static CustomMsBuildProjectLoader? _msBuildProjectLoader;
 	private static RemoteSnapshotManager? _snapshotManager;
 	private static RemoteSemanticTokensLegendService? _semanticTokensLegendService;
-	private static SharpIdeSolutionModel? _sharpIdeSolutionModel;
 	private static HashSet<CodeFixProvider> _codeFixProviders = [];
 	private static HashSet<CodeRefactoringProvider> _codeRefactoringProviders = [];
-	private static TaskCompletionSource _solutionLoadedTcs = null!;
-	public static void StartSolutionAnalysis(SharpIdeSolutionModel solutionModel)
+
+	private TaskCompletionSource _solutionLoadedTcs = null!;
+	private SharpIdeSolutionModel? _sharpIdeSolutionModel;
+	public void StartSolutionAnalysis(SharpIdeSolutionModel solutionModel)
 	{
 		_solutionLoadedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 		_ = Task.Run(async () =>
@@ -54,7 +55,7 @@ public static class RoslynAnalysis
 			}
 		});
 	}
-	public static async Task Analyse(SharpIdeSolutionModel solutionModel, CancellationToken cancellationToken = default)
+	public async Task Analyse(SharpIdeSolutionModel solutionModel, CancellationToken cancellationToken = default)
 	{
 		Console.WriteLine($"RoslynAnalysis: Loading solution");
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(Analyse)}");
@@ -150,7 +151,7 @@ public static class RoslynAnalysis
 
 	/// Callers should call UpdateSolutionDiagnostics after this
 	/// Ensure that the SharpIdeSolutionModel has been updated before calling this and any subsequent calls
-	public static async Task ReloadSolution(CancellationToken cancellationToken = default)
+	public async Task ReloadSolution(CancellationToken cancellationToken = default)
 	{
 		Console.WriteLine($"RoslynAnalysis: Reloading Solution");
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(ReloadSolution)}");
@@ -177,7 +178,7 @@ public static class RoslynAnalysis
 
 	/// Callers should call UpdateSolutionDiagnostics after this
 	/// Ensure that the SharpIdeSolutionModel has been updated before calling this and any subsequent calls
-	public static async Task ReloadProject(SharpIdeProjectModel projectModel, CancellationToken cancellationToken = default)
+	public async Task ReloadProject(SharpIdeProjectModel projectModel, CancellationToken cancellationToken = default)
 	{
 		Console.WriteLine($"RoslynAnalysis: Reloading Project {projectModel.FilePath}");
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(ReloadSolution)}");
@@ -260,7 +261,7 @@ public static class RoslynAnalysis
 			}).ToImmutableArray();
 	}
 
-	public static async Task UpdateSolutionDiagnostics()
+	public async Task UpdateSolutionDiagnostics()
 	{
 		Console.WriteLine("RoslynAnalysis: Updating solution diagnostics");
 		var timer = Stopwatch.StartNew();
@@ -277,7 +278,7 @@ public static class RoslynAnalysis
 		Console.WriteLine($"RoslynAnalysis: Solution diagnostics updated in {timer.ElapsedMilliseconds}ms");
 	}
 
-	public static async Task<ImmutableArray<Diagnostic>> GetProjectDiagnostics(SharpIdeProjectModel projectModel)
+	public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnostics(SharpIdeProjectModel projectModel)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetProjectDiagnostics)}");
 		await _solutionLoadedTcs.Task;
@@ -291,7 +292,7 @@ public static class RoslynAnalysis
 		return diagnostics;
 	}
 
-	public static async Task<ImmutableArray<SharpIdeDiagnostic>> GetProjectDiagnosticsForFile(SharpIdeFile sharpIdeFile)
+	public async Task<ImmutableArray<SharpIdeDiagnostic>> GetProjectDiagnosticsForFile(SharpIdeFile sharpIdeFile)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetProjectDiagnosticsForFile)}");
 		await _solutionLoadedTcs.Task;
@@ -310,7 +311,7 @@ public static class RoslynAnalysis
 		return diagnostics;
 	}
 
-	public static async Task<ImmutableArray<SharpIdeDiagnostic>> GetDocumentDiagnostics(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
+	public async Task<ImmutableArray<SharpIdeDiagnostic>> GetDocumentDiagnostics(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
 	{
 		if (fileModel.IsRoslynWorkspaceFile is false) return [];
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetDocumentDiagnostics)}");
@@ -349,7 +350,7 @@ public static class RoslynAnalysis
 	}
 
 	public record SharpIdeRazorMappedClassifiedSpan(SharpIdeRazorSourceSpan SourceSpanInRazor, string CsharpClassificationType);
-	public static async Task<ImmutableArray<SharpIdeRazorClassifiedSpan>> GetRazorDocumentSyntaxHighlighting(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
+	public async Task<ImmutableArray<SharpIdeRazorClassifiedSpan>> GetRazorDocumentSyntaxHighlighting(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetRazorDocumentSyntaxHighlighting)}");
 		await _solutionLoadedTcs.Task;
@@ -457,7 +458,7 @@ public static class RoslynAnalysis
 	}
 
 	// This is expensive for files that have just been updated, making it suboptimal for real-time highlighting
-	public static async Task<ImmutableArray<SharpIdeClassifiedSpan>> GetDocumentSyntaxHighlighting(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
+	public async Task<ImmutableArray<SharpIdeClassifiedSpan>> GetDocumentSyntaxHighlighting(SharpIdeFile fileModel, CancellationToken cancellationToken = default)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetDocumentSyntaxHighlighting)}");
 		await _solutionLoadedTcs.Task;
@@ -479,7 +480,7 @@ public static class RoslynAnalysis
 		return result;
 	}
 
-	public static async Task<CompletionList> GetCodeCompletionsForDocumentAtPosition(SharpIdeFile fileModel, LinePosition linePosition)
+	public async Task<CompletionList> GetCodeCompletionsForDocumentAtPosition(SharpIdeFile fileModel, LinePosition linePosition)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetCodeCompletionsForDocumentAtPosition)}");
 		await _solutionLoadedTcs.Task;
@@ -490,7 +491,7 @@ public static class RoslynAnalysis
 		return completions;
 	}
 
-	public static async Task<ImmutableArray<CodeAction>> GetCodeFixesForDocumentAtPosition(SharpIdeFile fileModel, LinePosition linePosition, CancellationToken cancellationToken = default)
+	public async Task<ImmutableArray<CodeAction>> GetCodeFixesForDocumentAtPosition(SharpIdeFile fileModel, LinePosition linePosition, CancellationToken cancellationToken = default)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetCodeFixesForDocumentAtPosition)}");
 		await _solutionLoadedTcs.Task;
@@ -575,9 +576,10 @@ public static class RoslynAnalysis
 	}
 
 	/// Returns the list of files modified by applying the code action
-	public static async Task<List<(SharpIdeFile File, string UpdatedText)>> ApplyCodeActionAsync(CodeAction codeAction)
+	public async Task<List<(SharpIdeFile File, string UpdatedText)>> ApplyCodeActionAsync(CodeAction codeAction)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(ApplyCodeActionAsync)}");
+		await _solutionLoadedTcs.Task;
 		var cancellationToken = CancellationToken.None;
 		var operations = await codeAction.GetOperationsAsync(cancellationToken);
 		var changedDocumentIds = new List<DocumentId>();
@@ -617,7 +619,7 @@ public static class RoslynAnalysis
 		return changedFilesWithText;
 	}
 
-	public static async Task<(ISymbol?, LinePositionSpan?)> LookupSymbol(SharpIdeFile fileModel, LinePosition linePosition)
+	public async Task<(ISymbol?, LinePositionSpan?)> LookupSymbol(SharpIdeFile fileModel, LinePosition linePosition)
 	{
 		await _solutionLoadedTcs.Task;
 		var (symbol, linePositionSpan) = fileModel switch
@@ -699,9 +701,10 @@ public static class RoslynAnalysis
 		return null;
 	}
 
-	public static async Task UpdateDocument(SharpIdeFile fileModel, string newContent)
+	public async Task UpdateDocument(SharpIdeFile fileModel, string newContent)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(UpdateDocument)}");
+		await _solutionLoadedTcs.Task;
 		Guard.Against.Null(fileModel, nameof(fileModel));
 		Guard.Against.NullOrEmpty(newContent, nameof(newContent));
 
