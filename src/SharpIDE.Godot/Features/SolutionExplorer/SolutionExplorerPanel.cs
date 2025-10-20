@@ -185,13 +185,13 @@ public partial class SolutionExplorerPanel : MarginContainer
 		e.NewItem.View.Value = projectItem;
 
 		// Observe project folders
-		var foldersView = e.NewItem.Value.Folders
-			.WithInitialPopulation(s => CreateFolderTreeItem(_tree, projectItem, s))
-			.CreateView(y => new TreeItemContainer());
+		var foldersView = e.NewItem.Value.Folders.CreateView(y => new TreeItemContainer());
+		foldersView.Unfiltered.ToList().ForEach(s => s.View.Value = CreateFolderTreeItem(_tree, projectItem, s.Value));
+		
 		foldersView.ObserveChanged()
 			.SubscribeAwait(async (innerEvent, ct) => await (innerEvent.Action switch
 			{
-				NotifyCollectionChangedAction.Add => this.InvokeAsync(() => CreateFolderTreeItem(_tree, projectItem, innerEvent)),
+				NotifyCollectionChangedAction.Add => this.InvokeAsync(() => innerEvent.NewItem.View.Value = CreateFolderTreeItem(_tree, projectItem, innerEvent.NewItem.Value)),
 				NotifyCollectionChangedAction.Remove => FreeTreeItem(innerEvent.OldItem.View.Value),
 				_ => Task.CompletedTask
 			})).AddTo(this);
@@ -210,28 +210,27 @@ public partial class SolutionExplorerPanel : MarginContainer
 	}
 
 	[RequiresGodotUiThread]
-	private void CreateFolderTreeItem(Tree tree, TreeItem parent, ViewChangedEvent<SharpIdeFolder, TreeItemContainer> e)
+	private TreeItem CreateFolderTreeItem(Tree tree, TreeItem parent, SharpIdeFolder sharpIdeFolder)
 	{
 		var folderItem = tree.CreateItem(parent);
-		folderItem.SetText(0, e.NewItem.Value.Name);
+		folderItem.SetText(0, sharpIdeFolder.Name);
 		folderItem.SetIcon(0, FolderIcon);
-		folderItem.SetMetadata(0, new RefCountedContainer<SharpIdeFolder>(e.NewItem.Value));
-		e.NewItem.View.Value = folderItem;
-
+		folderItem.SetMetadata(0, new RefCountedContainer<SharpIdeFolder>(sharpIdeFolder));
+		
 		// Observe subfolders
-		var subFoldersView = e.NewItem.Value.Folders
-			.WithInitialPopulation(s => CreateFolderTreeItem(_tree, folderItem, s))
-			.CreateView(y => new TreeItemContainer());
+		var subFoldersView = sharpIdeFolder.Folders.CreateView(y => new TreeItemContainer());
+		subFoldersView.Unfiltered.ToList().ForEach(s => s.View.Value = CreateFolderTreeItem(_tree, folderItem, s.Value));
+		
 		subFoldersView.ObserveChanged()
 			.SubscribeAwait(async (innerEvent, ct) => await (innerEvent.Action switch
 			{
-				NotifyCollectionChangedAction.Add => this.InvokeAsync(() => CreateFolderTreeItem(_tree, folderItem, innerEvent)),
+				NotifyCollectionChangedAction.Add => this.InvokeAsync(() => innerEvent.NewItem.View.Value = CreateFolderTreeItem(_tree, folderItem, innerEvent.NewItem.Value)),
 				NotifyCollectionChangedAction.Remove => FreeTreeItem(innerEvent.OldItem.View.Value),
 				_ => Task.CompletedTask
 			})).AddTo(this);
 
 		// Observe files
-		var filesView = e.NewItem.Value.Files
+		var filesView = sharpIdeFolder.Files
 			.WithInitialPopulation(s => CreateFileTreeItem(_tree, folderItem, s))
 			.CreateView(y => new TreeItemContainer());
 		filesView.ObserveChanged()
@@ -241,6 +240,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 				NotifyCollectionChangedAction.Remove => FreeTreeItem(innerEvent.OldItem.View.Value),
 				_ => Task.CompletedTask
 			})).AddTo(this);
+		return folderItem;
 	}
 
 	[RequiresGodotUiThread]
