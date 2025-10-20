@@ -1,5 +1,6 @@
 ﻿using Godot;
 using SharpIDE.Application.Features.SolutionDiscovery;
+using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 namespace SharpIDE.Godot.Features.SolutionExplorer;
 
@@ -7,7 +8,8 @@ file enum FileContextMenuOptions
 {
     Open = 0,
     RevealInFileExplorer = 1,
-    CopyFullPath = 2
+    CopyFullPath = 2,
+    Delete = 3
 }
 
 public partial class SolutionExplorerPanel
@@ -20,6 +22,9 @@ public partial class SolutionExplorerPanel
         menu.AddItem("Reveal in File Explorer", (int)FileContextMenuOptions.RevealInFileExplorer);
         menu.AddSeparator();
         menu.AddItem("Copy Full Path", (int)FileContextMenuOptions.CopyFullPath);
+        menu.AddSeparator();
+        menu.AddItem("Delete", (int)FileContextMenuOptions.Delete);
+        if (file.Parent is SharpIdeSolutionFolder) menu.SetItemDisabled((int)FileContextMenuOptions.Delete, true);
         menu.PopupHide += () => menu.QueueFree();
         menu.IdPressed += id =>
         {
@@ -35,6 +40,32 @@ public partial class SolutionExplorerPanel
             else if (actionId is FileContextMenuOptions.CopyFullPath)
             {
                 DisplayServer.ClipboardSet(file.Path);
+            }
+            else if (actionId is FileContextMenuOptions.Delete)
+            {
+                var confirmedTcs = new TaskCompletionSource<bool>();
+                var confirmationDialog = new ConfirmationDialog();
+                confirmationDialog.Title = "Delete";
+                confirmationDialog.DialogText = $"Delete '{file.Name}' file?";
+                confirmationDialog.Confirmed += () =>
+                {
+                    confirmedTcs.SetResult(true);
+                };
+                confirmationDialog.Canceled += () =>
+                {
+                    confirmedTcs.SetResult(false);
+                };
+                AddChild(confirmationDialog);
+                confirmationDialog.PopupCentered();
+                
+                _ = Task.GodotRun(async () =>
+                {
+                    var confirmed = await confirmedTcs.Task;
+                    if (confirmed)
+                    {
+                        await _ideFileOperationsService.DeleteFile(file);
+                    }
+                });
             }
         };
 			

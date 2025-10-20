@@ -20,11 +20,11 @@ public class IdeFileOperationsService(SharpIdeSolutionModificationService sharpI
 		await _sharpIdeSolutionModificationService.RemoveDirectory(folder);
 	}
 
-	// public async Task DeleteFile(SharpIdeFile file)
-	// {
-	// 	File.Delete(file.Path);
-	// 	await _sharpIdeSolutionModificationService.RemoveFile(file);
-	// }
+	public async Task DeleteFile(SharpIdeFile file)
+	{
+		File.Delete(file.Path);
+		await _sharpIdeSolutionModificationService.RemoveFile(file);
+	}
 
 	public async Task CreateCsFile(SharpIdeFolder parentFolder, string newFileName)
 	{
