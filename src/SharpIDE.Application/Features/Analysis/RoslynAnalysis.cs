@@ -575,6 +575,37 @@ public class RoslynAnalysis
 		return completions;
 	}
 
+	public async Task<(string updatedText, SharpIdeFileLinePosition sharpIdeFileLinePosition)> GetCompletionApplyChanges(SharpIdeFile file, CompletionItem completionItem, CancellationToken cancellationToken = default)
+	{
+		var documentId = _workspace!.CurrentSolution.GetDocumentIdsWithFilePath(file.Path).Single();
+		var document = _workspace.CurrentSolution.GetRequiredDocument(documentId);
+		var completionService = CompletionService.GetService(document) ?? throw new InvalidOperationException("Completion service is not available for the document.");
+
+		var completionChange = await completionService.GetChangeAsync(document, completionItem, commitCharacter: '.', cancellationToken: cancellationToken);
+		var sourceText = await document.GetTextAsync(cancellationToken);
+		var newText = sourceText.WithChanges(completionChange.TextChange);
+		var newCaretPosition = completionChange.NewPosition ?? NewCaretPosition();
+		var linePosition = newText.Lines.GetLinePosition(newCaretPosition);
+		var sharpIdeFileLinePosition = new SharpIdeFileLinePosition
+		{
+			Line = linePosition.Line,
+			Column = linePosition.Character
+		};
+
+		return (newText.ToString(), sharpIdeFileLinePosition);
+
+		int NewCaretPosition()
+		{
+			var caretPosition = completionChange.TextChange.Span.Start + completionChange.TextChange.NewText!.Length;
+			// if change ends with (), place caret between the parentheses
+			if (completionChange.TextChange.NewText!.EndsWith("()"))
+			{
+				caretPosition -= 1;
+			}
+			return caretPosition;
+		}
+	}
+
 	/// Returns the list of files that would be modified by applying the code action. Does not apply the changes to the workspace sln
 	public async Task<List<(SharpIdeFile File, string UpdatedText)>> GetCodeActionApplyChanges(CodeAction codeAction)
 	{

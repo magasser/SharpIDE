@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using R3;
+using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Events;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
@@ -19,7 +20,7 @@ public class SharpIdeFile : ISharpIdeNode, IChildSharpIdeNode, IFileOrFolder
 	public required ReactiveProperty<bool> IsDirty { get; init; }
 	public required bool SuppressDiskChangeEvents { get; set; } // probably has concurrency issues
 	public required DateTimeOffset? LastIdeWriteTime { get; set; }
-	public EventWrapper<Task> FileContentsChangedExternally { get; } = new(() => Task.CompletedTask);
+	public EventWrapper<SharpIdeFileLinePosition?, Task> FileContentsChangedExternally { get; } = new((_) => Task.CompletedTask);
 
 	[SetsRequiredMembers]
 	internal SharpIdeFile(string fullPath, string name, IExpandableSharpIdeNode parent, ConcurrentBag<SharpIdeFile> allFiles)

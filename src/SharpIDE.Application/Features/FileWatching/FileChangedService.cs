@@ -13,7 +13,8 @@ public enum FileChangeType
 	IdeSaveToDisk, // Apply to disk
 	IdeUnsavedChange, // Apply only in memory
 	ExternalChange, // Apply to disk, as well as in memory
-	CodeActionChange // Apply to disk, as well as in memory
+	CodeActionChange, // Apply to disk, as well as in memory
+	CompletionChange // Apply only in memory, as well as notify tabs of new content
 }
 
 public class FileChangedService(RoslynAnalysis roslynAnalysis, IdeOpenTabsFileManager openTabsFileManager)
@@ -59,7 +60,7 @@ public class FileChangedService(RoslynAnalysis roslynAnalysis, IdeOpenTabsFileMa
 	}
 
 	// All file changes should go via this service
-	public async Task SharpIdeFileChanged(SharpIdeFile file, string newContents, FileChangeType changeType)
+	public async Task SharpIdeFileChanged(SharpIdeFile file, string newContents, FileChangeType changeType, SharpIdeFileLinePosition? linePosition = null)
 	{
 		if (changeType is FileChangeType.ExternalChange)
 		{
@@ -67,13 +68,19 @@ public class FileChangedService(RoslynAnalysis roslynAnalysis, IdeOpenTabsFileMa
 			// Update any open tabs
 			// update in memory
 			await _openTabsFileManager.UpdateFileTextInMemory(file, newContents);
-			file.FileContentsChangedExternally.InvokeParallelFireAndForget();
+			file.FileContentsChangedExternally.InvokeParallelFireAndForget(linePosition);
 		}
 		else if (changeType is FileChangeType.CodeActionChange)
 		{
 			// update in memory, tabs and save to disk
 			await _openTabsFileManager.UpdateInMemoryIfOpenAndSaveAsync(file, newContents);
-			file.FileContentsChangedExternally.InvokeParallelFireAndForget();
+			file.FileContentsChangedExternally.InvokeParallelFireAndForget(linePosition);
+		}
+		else if (changeType is FileChangeType.CompletionChange)
+		{
+			// update in memory, tabs
+			await _openTabsFileManager.UpdateFileTextInMemory(file, newContents);
+			file.FileContentsChangedExternally.InvokeParallelFireAndForget(linePosition);
 		}
 		else if (changeType is FileChangeType.IdeSaveToDisk)
 		{

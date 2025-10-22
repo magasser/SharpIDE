@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using Godot;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using SharpIDE.Application;
@@ -14,6 +14,7 @@ using SharpIDE.Application.Features.FileWatching;
 using SharpIDE.Application.Features.Run;
 using SharpIDE.Application.Features.SolutionDiscovery;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
+using SharpIDE.Godot.Features.Problems;
 using SharpIDE.RazorAccess;
 using Task = System.Threading.Tasks.Task;
 using Timer = Godot.Timer;
@@ -47,6 +48,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
     [Inject] private readonly RoslynAnalysis _roslynAnalysis = null!;
     [Inject] private readonly CodeActionService _codeActionService = null!;
     [Inject] private readonly FileChangedService _fileChangedService = null!;
+    [Inject] private readonly IdeCompletionService _ideCompletionService = null!;
 	
 	public override void _Ready()
 	{
@@ -299,12 +301,12 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		});
 	}
 
-	private async Task OnFileChangedExternally()
+	private async Task OnFileChangedExternally(SharpIdeFileLinePosition? linePosition)
 	{
 		var fileContents = await _openTabsFileManager.GetFileTextAsync(_currentFile);
 		Callable.From(() =>
 		{
-			var currentCaretPosition = GetCaretPosition();
+			(int line, int col) currentCaretPosition = linePosition is null ? GetCaretPosition() : (linePosition.Value.Line, linePosition.Value.Column);
 			var vScroll = GetVScroll();
 			BeginComplexOperation();
 			SetText(fileContents);
@@ -317,8 +319,8 @@ public partial class SharpIdeCodeEdit : CodeEdit
 
 	public void SetFileLinePosition(SharpIdeFileLinePosition fileLinePosition)
 	{
-		var line = fileLinePosition.Line - 1;
-		var column = fileLinePosition.Column - 1;
+		var line = fileLinePosition.Line;
+		var column = fileLinePosition.Column;
 		SetCaretLine(line);
 		SetCaretColumn(column);
 		CenterViewportToCaret();
@@ -498,6 +500,20 @@ public partial class SharpIdeCodeEdit : CodeEdit
 		});
 	}
 
+	public override void _ConfirmCodeCompletion(bool replace)
+	{
+		GD.Print("Code completion confirmed");
+		var selectedIndex = GetCodeCompletionSelectedIndex();
+		var selectedText = GetCodeCompletionOption(selectedIndex);
+		if (selectedText is null) return;
+		var completionItem = selectedText["default_value"].As<RefCountedContainer<CompletionItem>>().Item;
+		_ = Task.GodotRun(async () =>
+		{
+			await _ideCompletionService.ApplyCompletion(_currentFile, completionItem);
+		});
+		CancelCodeCompletion();
+	}
+
 	private void OnCodeCompletionRequested()
 	{
 		var (caretLine, caretColumn) = GetCaretPosition();
@@ -510,9 +526,20 @@ public partial class SharpIdeCodeEdit : CodeEdit
 			var completions = await _roslynAnalysis.GetCodeCompletionsForDocumentAtPosition(_currentFile, linePos);
 			await this.InvokeAsync(() =>
 			{
-				foreach (var completionItem in completions.ItemsList)
+				foreach (var (index, completionItem) in completions.ItemsList.Take(100).Index())
 				{
-					AddCodeCompletionOption(CodeCompletionKind.Class, completionItem.DisplayText, completionItem.DisplayText);
+					var symbolKindString = CollectionExtensions.GetValueOrDefault(completionItem.Properties, "SymbolKind");
+					var symbolKind = symbolKindString is null ? null : (SymbolKind?)int.Parse(symbolKindString);
+					var godotCompletionType = symbolKind switch
+					{
+						SymbolKind.Method => CodeCompletionKind.Function,
+						SymbolKind.NamedType => CodeCompletionKind.Class,
+						SymbolKind.Local => CodeCompletionKind.Variable,
+						SymbolKind.Property => CodeCompletionKind.Member,
+						SymbolKind.Field => CodeCompletionKind.Member,
+						_ => CodeCompletionKind.PlainText
+					};
+					AddCodeCompletionOption(godotCompletionType, completionItem.DisplayText, completionItem.DisplayText, value: new RefCountedContainer<CompletionItem>(completionItem));
 				}
 				// partially working - displays menu only when caret is what CodeEdit determines as valid
 				UpdateCodeCompletionOptions(true);
