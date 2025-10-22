@@ -151,9 +151,17 @@ public partial class IdeRoot : Control
 			_roslynAnalysis.StartSolutionAnalysis(solutionModel);
 			_fileWatcher.StartWatching(solutionModel);
 			
-			var infraProject = solutionModel.AllProjects.SingleOrDefault(s => s.Name == "WebUi");
-			var diFile = infraProject?.Folders.Single(s => s.Name == "Pages").Files.Single(s => s.Name == "TestPage.razor");
-			if (diFile != null) await this.InvokeDeferredAsync(() => GodotGlobalEvents.Instance.FileExternallySelected.InvokeParallelFireAndForget(diFile, null));
+			var previousTabs = Singletons.AppState.RecentSlns.Single(s => s.FilePath == solutionModel.FilePath).IdeSolutionState.OpenTabs;
+			var filesToOpen = previousTabs
+				.Select(s => (solutionModel.AllFiles.Single(f => f.Path == s.FilePath), new SharpIdeFileLinePosition(s.CaretLine, s.CaretColumn)))
+				.ToList();
+			await this.InvokeDeferredAsync(async () =>
+			{
+				foreach (var (file, linePosition) in filesToOpen)
+				{
+					GodotGlobalEvents.Instance.FileExternallySelected.InvokeParallelFireAndForget(file, linePosition);
+				}
+			});
 				
 			var tasks = solutionModel.AllProjects.Select(p => p.MsBuildEvaluationProjectTask).ToList();
 			await Task.WhenAll(tasks).ConfigureAwait(false);
