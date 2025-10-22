@@ -70,6 +70,11 @@ public class IdeOpenTabsFileManager
 			await SaveFileAsync(file);
 		}
 	}
+
+	public void CloseFile(SharpIdeFile file)
+	{
+		_openFiles.TryRemove(file, out _);
+	}
 }
 
 #pragma warning restore VSTHRD011
