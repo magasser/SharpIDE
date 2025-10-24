@@ -2,6 +2,7 @@
 using System.Threading.Channels;
 using Ardalis.GuardClauses;
 using AsyncReadProcess;
+using Microsoft.Extensions.Logging;
 using SharpIDE.Application.Features.Debugging;
 using SharpIDE.Application.Features.Evaluation;
 using SharpIDE.Application.Features.Events;
@@ -10,11 +11,14 @@ using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 namespace SharpIDE.Application.Features.Run;
 
-public class RunService
+public class RunService(ILogger<RunService> logger)
 {
 	private readonly ConcurrentDictionary<SharpIdeProjectModel, SemaphoreSlim> _projectLocks = [];
 	public ConcurrentDictionary<SharpIdeFile, List<Breakpoint>> Breakpoints { get; } = [];
 	private Debugger? _debugger; // TODO: Support multiple debuggers for multiple running projects
+
+	private readonly ILogger<RunService> _logger = logger;
+
 	public async Task RunProject(SharpIdeProjectModel project, bool isDebug = false)
 	{
 		Guard.Against.Null(project, nameof(project));
@@ -125,7 +129,7 @@ public class RunService
 
 			project.InvokeProjectStoppedRunning();
 
-			Console.WriteLine("Project finished running");
+			_logger.LogInformation("Process for project {ProjectName} has exited", project.Name);
 		}
 		finally
 		{
