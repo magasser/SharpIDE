@@ -616,21 +616,15 @@ public class RoslynAnalysis
 		await _solutionLoadedTcs.Task;
 		var cancellationToken = CancellationToken.None;
 		var operations = await codeAction.GetOperationsAsync(cancellationToken);
-		var changedDocumentIds = new List<DocumentId>();
 		var originalSolution = _workspace!.CurrentSolution;
+		var updatedSolution = originalSolution;
 		foreach (var operation in operations)
 		{
 			if (operation is ApplyChangesOperation applyChangesOperation)
 			{
-				// TODO: Handle added and removed documents
-				var newSolution = applyChangesOperation.ChangedSolution;
-				var changedDocIds = newSolution
-					.GetChanges(_workspace!.CurrentSolution)
-					.GetProjectChanges()
-					.SelectMany(s => s.GetChangedDocuments().Concat(s.GetChangedAdditionalDocuments()));
-				changedDocumentIds.AddRange(changedDocIds);
-
-				_workspace.TryApplyChanges(newSolution);
+				var changes = applyChangesOperation.ChangedSolution.GetChanges(updatedSolution);
+				// TODO: What does this actually do
+				updatedSolution = await applyChangesOperation.ChangedSolution.WithMergedLinkedFileChangesAsync(updatedSolution, changes, cancellationToken).ConfigureAwait(false);
 			}
 			else
 			{
@@ -638,9 +632,17 @@ public class RoslynAnalysis
 			}
 		}
 
-		var changedFilesWithText = await changedDocumentIds
-			.DistinctBy(s => s.Id)
-			.Select(id => _workspace!.CurrentSolution.GetDocument(id))
+		var allChanges = updatedSolution.GetChanges(originalSolution);
+		// TODO: Handle added and removed documents
+		var changedDocIds = allChanges
+			.GetExplicitlyChangedSourceGeneratedDocuments().Union(allChanges
+				.GetProjectChanges()
+				.SelectMany(s => s.GetChangedDocuments().Union(s.GetChangedAdditionalDocuments()))).ToHashSet();
+
+		var changedFilesWithText = await changedDocIds
+			.DistinctBy(s => s.Id) // probably not necessary
+			.Select(id => updatedSolution.GetDocument(id))
+			//.Select(id => updatedSolution.GetDocument(id) ?? await _workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(id, cancellationToken))
 			.Where(d => d is not null)
 			.OfType<Document>() // ensures non-null
 			.ToAsyncEnumerable()
@@ -651,8 +653,6 @@ public class RoslynAnalysis
 				return (sharpFile, text.ToString());
 			})
 			.ToListAsync(cancellationToken);
-
-		_workspace.TryApplyChanges(originalSolution);
 
 		return changedFilesWithText;
 	}
