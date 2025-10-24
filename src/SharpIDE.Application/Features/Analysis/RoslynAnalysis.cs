@@ -610,11 +610,10 @@ public class RoslynAnalysis
 	}
 
 	/// Returns the list of files that would be modified by applying the code action. Does not apply the changes to the workspace sln
-	public async Task<List<(SharpIdeFile File, string UpdatedText)>> GetCodeActionApplyChanges(CodeAction codeAction)
+	public async Task<List<(SharpIdeFile File, string UpdatedText)>> GetCodeActionApplyChanges(CodeAction codeAction, CancellationToken cancellationToken = default)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(GetCodeActionApplyChanges)}");
 		await _solutionLoadedTcs.Task;
-		var cancellationToken = CancellationToken.None;
 		var operations = await codeAction.GetOperationsAsync(cancellationToken);
 		var originalSolution = _workspace!.CurrentSolution;
 		var updatedSolution = originalSolution;
