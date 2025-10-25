@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Ardalis.GuardClauses" Version="5.0.0" />
-    <PackageVersion Include="AsyncReadProcess" Version="1.0.0-preview15" />
+    <PackageVersion Include="AsyncReadProcess" Version="1.1.6" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.3.0" />
     <PackageVersion Include="CliWrap" Version="3.9.0" />
