@@ -16,7 +16,8 @@ file enum ProjectContextMenuOptions
     Build = 2,
     Rebuild = 3,
     Clean = 4,
-    Restore = 5
+    Restore = 5,
+    DotnetUserSecrets = 6,
 }
 
 file enum CreateNewSubmenuOptions
@@ -31,6 +32,7 @@ public partial class SolutionExplorerPanel
     
     [Inject] private readonly BuildService _buildService = null!;
     [Inject] private readonly RunService _runService = null!;
+    [Inject] private readonly DotnetUserSecretsService _dotnetUserSecretsService = null!;
 
     private void OpenContextMenuProject(SharpIdeProjectModel project)
     {
@@ -50,6 +52,8 @@ public partial class SolutionExplorerPanel
         menu.AddItem("Rebuild", (int)ProjectContextMenuOptions.Rebuild);
         menu.AddItem("Clean", (int)ProjectContextMenuOptions.Clean);
         menu.AddItem("Restore", (int)ProjectContextMenuOptions.Restore);
+        menu.AddSeparator();
+        menu.AddItem(".NET User Secrets", (int)ProjectContextMenuOptions.DotnetUserSecrets);
         menu.PopupHide += () => menu.QueueFree();
         menu.IdPressed += id =>
         {
@@ -77,6 +81,14 @@ public partial class SolutionExplorerPanel
             else if (actionId is ProjectContextMenuOptions.Restore)
             {
                 _ = Task.GodotRun(async () => await MsBuildProject(project, BuildType.Restore));
+            }
+            else if (actionId is ProjectContextMenuOptions.DotnetUserSecrets)
+            {
+                _ = Task.GodotRun(async () =>
+                {
+                    var (userSecretsId, filePath) = await _dotnetUserSecretsService.GetOrCreateUserSecretsId(project);
+                    OS.ShellShowInFileManager(filePath);
+                });
             }
         };
 			

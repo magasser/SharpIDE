@@ -37,4 +37,22 @@ public static class ProjectEvaluation
 		Guard.Against.NullOrWhiteSpace(targetPath, nameof(targetPath));
 		return targetPath;
 	}
+
+	public static Guid GetOrCreateDotnetUserSecretsId(SharpIdeProjectModel projectModel)
+	{
+		Guard.Against.Null(projectModel, nameof(projectModel));
+
+		var project = _projectCollection.GetLoadedProjects(projectModel.FilePath).Single();
+		var projectRootElement = project.Xml;
+		var userSecretsId = project.GetPropertyValue("UserSecretsId");
+		if (string.IsNullOrWhiteSpace(userSecretsId))
+		{
+			var newGuid = Guid.NewGuid();
+			var property = projectRootElement.AddProperty("UserSecretsId", newGuid.ToString());
+			project.Save();
+			return newGuid;
+		}
+		return Guid.Parse(userSecretsId);
+	}
+
 }

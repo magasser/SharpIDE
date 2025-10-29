@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Build;
+using SharpIDE.Application.Features.Evaluation;
 using SharpIDE.Application.Features.FilePersistence;
 using SharpIDE.Application.Features.FileWatching;
 using SharpIDE.Application.Features.Run;
@@ -32,6 +33,7 @@ public partial class DiAutoload : Node
         services.AddScoped<IdeCodeActionService>();
         services.AddScoped<IdeApplyCompletionService>();
         services.AddScoped<FileChangedService>();
+        services.AddScoped<DotnetUserSecretsService>();
         services.AddScoped<IdeFileWatcher>();
         services.AddScoped<IdeOpenTabsFileManager>();
         services.AddScoped<RoslynAnalysis>();
