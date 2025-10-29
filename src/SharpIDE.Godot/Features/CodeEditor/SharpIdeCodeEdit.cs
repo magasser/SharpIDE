@@ -518,6 +518,7 @@ public partial class SharpIdeCodeEdit : CodeEdit
 					SymbolKind.Method => CodeCompletionKind.Function,
 					SymbolKind.NamedType => CodeCompletionKind.Class,
 					SymbolKind.Local => CodeCompletionKind.Variable,
+					SymbolKind.Parameter => CodeCompletionKind.Variable,
 					SymbolKind.Property => CodeCompletionKind.Member,
 					SymbolKind.Field => CodeCompletionKind.Member,
 					_ => CodeCompletionKind.PlainText
