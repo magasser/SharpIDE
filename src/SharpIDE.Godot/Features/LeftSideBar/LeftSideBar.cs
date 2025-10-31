@@ -12,6 +12,7 @@ public partial class LeftSideBar : Panel
     private Button _buildButton = null!;
     private Button _debugButton = null!;
     private Button _ideDiagnosticsButton = null!;
+    private Button _nugetButton = null!;
     
     public override void _Ready()
     {
@@ -21,12 +22,14 @@ public partial class LeftSideBar : Panel
         _buildButton = GetNode<Button>("%BuildButton");
         _debugButton = GetNode<Button>("%DebugButton");
         _ideDiagnosticsButton = GetNode<Button>("%IdeDiagnosticsButton");
+        _nugetButton = GetNode<Button>("%NugetButton");
         
         _problemsButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.Problems : null);
         _runButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.Run : null);
         _buildButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.Build : null);
         _debugButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.Debug : null);
         _ideDiagnosticsButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.IdeDiagnostics : null);
+        _nugetButton.Toggled += toggledOn => GodotGlobalEvents.Instance.BottomPanelTabSelected.InvokeParallelFireAndForget(toggledOn ? BottomPanelType.Nuget : null);
         GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.Subscribe(OnBottomPanelTabExternallySelected);
     }
 
@@ -41,6 +44,7 @@ public partial class LeftSideBar : Panel
                 case BottomPanelType.Build: _buildButton.ButtonPressed = true; break;
                 case BottomPanelType.Problems: _problemsButton.ButtonPressed = true; break;
                 case BottomPanelType.IdeDiagnostics: _ideDiagnosticsButton.ButtonPressed = true; break;
+                case BottomPanelType.Nuget: _nugetButton.ButtonPressed = true; break;
                 default: throw new ArgumentOutOfRangeException(nameof(arg), arg, null);
             }
         });

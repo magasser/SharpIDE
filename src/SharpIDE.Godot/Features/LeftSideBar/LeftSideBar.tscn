@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://biyhfwx36ium8"]
+[gd_scene load_steps=12 format=3 uid="uid://biyhfwx36ium8"]
 
 [ext_resource type="Script" uid="uid://bddno1bbvvp5q" path="res://Features/LeftSideBar/LeftSideBar.cs" id="1_rgaf0"]
 [ext_resource type="ButtonGroup" uid="uid://c2nmo2x3va0gi" path="res://Features/LeftSideBar/LeftBottomSidebarButtonGroup.tres" id="2_1aad6"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://b0170ypw8uf3a" path="res://Features/LeftSideBar/Resources/Terminal.svg" id="6_ddh6f"]
 [ext_resource type="Texture2D" uid="uid://butisxqww0boc" path="res://Features/LeftSideBar/Resources/SidebarDebug.svg" id="6_jg03n"]
 [ext_resource type="Texture2D" uid="uid://dx8bt0adxpqgy" path="res://Features/LeftSideBar/Resources/Ide.svg" id="9_6ih3m"]
+[ext_resource type="Texture2D" uid="uid://b5ih61vdjv5e6" path="res://Features/LeftSideBar/Resources/Nuget.svg" id="11_csqeq"]
 
 [node name="LeftSideBar" type="Panel"]
 custom_minimum_size = Vector2(80, 0)
@@ -131,6 +132,22 @@ toggle_mode = true
 button_group = ExtResource("2_1aad6")
 text = "IDE"
 icon = ExtResource("9_6ih3m")
+icon_alignment = 1
+vertical_icon_alignment = 0
+expand_icon = true
+
+[node name="NugetButton" type="Button" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = ExtResource("4_umcfu")
+theme_override_styles/pressed = ExtResource("5_csqeq")
+toggle_mode = true
+button_group = ExtResource("2_1aad6")
+text = "NuGet"
+icon = ExtResource("11_csqeq")
 icon_alignment = 1
 vertical_icon_alignment = 0
 expand_icon = true
