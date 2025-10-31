@@ -14,7 +14,6 @@ config/name="SharpIDE.Godot"
 run/main_scene="uid://b70jhun5a4las"
 config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 run/max_fps=157
-run/low_processor_mode=true
 config/icon="uid://tpjfx7mo6cwj"
 
 [autoload]
