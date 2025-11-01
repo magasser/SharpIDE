@@ -102,6 +102,8 @@ public class NugetClientService
 				_sourceCacheContext, _nugetLogger, cancellationToken).ConfigureAwait(false);
 
 			//var packageByIdResource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken).ConfigureAwait(false);
-			return metadata.ToList();
+			var metadataList = metadata.ToList();
+			metadataList.Reverse();
+			return metadataList;
 	}
 }

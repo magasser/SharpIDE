@@ -13,6 +13,7 @@ public partial class NugetPackageDetails : VBoxContainer
     private IdePackageResult? _package;
     
     private readonly Texture2D _defaultIconTextureRect = ResourceLoader.Load<Texture2D>("uid://b5ih61vdjv5e6");
+    private readonly Texture2D _warningIconTextureRect = ResourceLoader.Load<Texture2D>("uid://pd3h5qfjn8pb");
     
     [Inject] private readonly NugetPackageIconCacheService _nugetPackageIconCacheService = null!;
     [Inject] private readonly NugetClientService _nugetClientService = null!;
@@ -51,20 +52,17 @@ public partial class NugetPackageDetails : VBoxContainer
         });
     }
     
-    private async void OnNugetSourceSelected(long index)
+    private async void OnNugetSourceSelected(long sourceIndex)
     {
-        var source = _package!.PackageFromSources[(int)index];
+        var source = _package!.PackageFromSources[(int)sourceIndex];
         var results = await _nugetClientService.GetAllVersionsOfPackageInSource(source.PackageSearchMetadata.Identity.Id, source.Source);
         await this.InvokeAsync(() =>
         {
             _versionOptionButton.Clear();
-            var versions = results
-                .Select(p => p.Identity.Version)
-                .Distinct()
-                .OrderByDescending(v => v);
-            foreach (var version in versions)
+            foreach (var (index, metadata) in results.Index())
             {
-                _versionOptionButton.AddItem(version.ToNormalizedString());
+                _versionOptionButton.AddItem(metadata.Identity.Version.ToNormalizedString());
+                //_versionOptionButton.SetItemIcon(index, _warningIconTextureRect);
             }
             _versionOptionButton.Selected = 0;
         });
