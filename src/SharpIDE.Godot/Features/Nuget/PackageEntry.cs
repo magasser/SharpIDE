@@ -8,7 +8,8 @@ public partial class PackageEntry : MarginContainer
 {
     private Button _button;
     private Label _packageNameLabel = null!;
-    private Label _currentVersionLabel = null!;
+    private Label _installedVersionLabel = null!;
+    private Label _implicitlyInstalledVersionLabel = null!;
     private Label _latestVersionLabel = null!;
     private HBoxContainer _sourceNamesContainer = null!;
     private TextureRect _packageIconTextureRect = null!;
@@ -37,7 +38,8 @@ public partial class PackageEntry : MarginContainer
     {
         _button = GetNode<Button>("Button");
         _packageNameLabel = GetNode<Label>("%PackageNameLabel");
-        _currentVersionLabel = GetNode<Label>("%CurrentVersionLabel");
+        _installedVersionLabel = GetNode<Label>("%InstalledVersionLabel");
+        _implicitlyInstalledVersionLabel = GetNode<Label>("%ImplicitlyInstalledVersionLabel");
         _latestVersionLabel = GetNode<Label>("%LatestVersionLabel");
         _sourceNamesContainer = GetNode<HBoxContainer>("%SourceNamesHBoxContainer");
         _packageIconTextureRect = GetNode<TextureRect>("%PackageIconTextureRect");
@@ -49,7 +51,7 @@ public partial class PackageEntry : MarginContainer
     {
         if (PackageResult is null) return;
         _packageNameLabel.Text = PackageResult.PackageId;
-        _currentVersionLabel.Text = string.Empty;
+        _installedVersionLabel.Text = PackageResult.InstalledNugetPackageInfo?.Version.ToNormalizedString();
         var highestVersionPackageFromSource = PackageResult.PackageFromSources
             .MaxBy(p => p.PackageSearchMetadata.Identity.Version);
         _latestVersionLabel.Text = highestVersionPackageFromSource.PackageSearchMetadata.Identity.Version.ToNormalizedString();

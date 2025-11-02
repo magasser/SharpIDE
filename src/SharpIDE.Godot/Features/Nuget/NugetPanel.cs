@@ -54,7 +54,7 @@ public partial class NugetPanel : Control
                 {
                     foreach (var scene in scenes)
                     {
-                        var container = scene.PackageResult.IsTransitive!.Value ? _implicitlyInstalledPackagesItemList : _installedPackagesVboxContainer;
+                        var container = scene.PackageResult.InstalledNugetPackageInfo!.IsTransitive ? _implicitlyInstalledPackagesItemList : _installedPackagesVboxContainer;
                         container.AddChild(scene);
                     }
                 });
