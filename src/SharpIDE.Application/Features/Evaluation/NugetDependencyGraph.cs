@@ -17,7 +17,7 @@ public static class NugetDependencyGraph
 		var target = assetsFile.Targets.SingleOrDefault();
 		if (target == null) return parentMap;
 
-		var packageLibraries = target.Libraries.Where(l => l.Type == "package").ToList();
+		var packageLibraries = target.Libraries.ToList();
 
 		foreach (var library in packageLibraries)
 		{
