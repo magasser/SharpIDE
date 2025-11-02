@@ -57,21 +57,6 @@ public static class ProjectEvaluation
 		return Guid.Parse(userSecretsId);
 	}
 
-	public class InstalledPackage
-	{
-		public required string Name { get; set; }
-		public required string RequestedVersion { get; set; }
-		public required string? ResolvedVersion { get; set; }
-		public required string TargetFramework { get; set; }
-		public required bool IsTopLevel { get; set; }
-		public required bool IsAutoReferenced { get; set; }
-		public List<DependentPackage>? DependentPackages { get; set; }
-	}
-	public class DependentPackage
-	{
-		public required string PackageName { get; set; }
-		public required VersionRange RequestedVersion { get; set; }
-	}
 	public static async Task<List<InstalledPackage>> GetPackageReferencesForProject(SharpIdeProjectModel projectModel, bool includeTransitive = true)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(ProjectEvaluation)}.{nameof(GetPackageReferencesForProject)}");
@@ -141,4 +126,18 @@ public static class ProjectEvaluation
 		return packages;
 	}
 
+public class InstalledPackage
+{
+	public required string Name { get; set; }
+	public required string RequestedVersion { get; set; }
+	public required string? ResolvedVersion { get; set; }
+	public required string TargetFramework { get; set; }
+	public required bool IsTopLevel { get; set; }
+	public required bool IsAutoReferenced { get; set; }
+	public List<DependentPackage>? DependentPackages { get; set; }
+}
+public class DependentPackage
+{
+	public required string PackageName { get; set; }
+	public required VersionRange RequestedVersion { get; set; }
 }

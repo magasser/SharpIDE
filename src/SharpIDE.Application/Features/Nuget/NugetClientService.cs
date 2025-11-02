@@ -9,7 +9,7 @@ using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 
 namespace SharpIDE.Application.Features.Nuget;
 
-public record InstalledNugetPackageInfo(bool IsTransitive, NuGetVersion Version, List<ProjectEvaluation.DependentPackage>? DependentPackages);
+public record InstalledNugetPackageInfo(bool IsTransitive, NuGetVersion Version, List<DependentPackage>? DependentPackages);
 public record IdePackageResult(string PackageId, List<IdePackageFromSourceResult> PackageFromSources, InstalledNugetPackageInfo? InstalledNugetPackageInfo);
 public record struct IdePackageFromSourceResult(IPackageSearchMetadata PackageSearchMetadata, PackageSource Source);
 public class NugetClientService
@@ -109,7 +109,7 @@ public class NugetClientService
 			return metadataList;
 	}
 
-	public async Task<List<IdePackageResult>> GetPackagesForInstalledPackages(string directoryPath, List<ProjectEvaluation.InstalledPackage> installedPackages, CancellationToken cancellationToken = default)
+	public async Task<List<IdePackageResult>> GetPackagesForInstalledPackages(string directoryPath, List<InstalledPackage> installedPackages, CancellationToken cancellationToken = default)
 	{
 		var settings = Settings.LoadDefaultSettings(root: directoryPath);
 		var packageSourceProvider = new PackageSourceProvider(settings);
