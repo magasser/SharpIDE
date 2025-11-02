@@ -45,7 +45,7 @@ public partial class NugetPanel : Control
         _solution = _sharpIdeSolutionAccessor.SolutionModel;
         await this.InvokeAsync(() =>
         {
-            foreach (var project in _solution!.AllProjects)
+            foreach (var project in _solution!.AllProjects.OrderBy(s => s.Name))
             {
                 _solutionOrProjectOptionButton.AddIconItem(_csprojIcon, project.Name);
             }
