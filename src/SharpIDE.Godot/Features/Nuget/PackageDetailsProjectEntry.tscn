@@ -55,26 +55,34 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="UpgradeButton" type="Button" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(31, 0)
+layout_mode = 2
+
+[node name="UpgradeButton" type="Button" parent="HBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/icon_max_width = 23
 icon = ExtResource("3_lvt3l")
 
-[node name="DowngradeButton" type="Button" parent="HBoxContainer"]
+[node name="DowngradeButton" type="Button" parent="HBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/icon_max_width = 23
 icon = ExtResource("4_qyf5e")
 
-[node name="RemoveButton" type="Button" parent="HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/icon_max_width = 23
-icon = ExtResource("3_pnq3l")
-
-[node name="AddButton" type="Button" parent="HBoxContainer"]
+[node name="AddButton" type="Button" parent="HBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/icon_max_width = 23
 icon = ExtResource("6_je8mg")
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(31, 0)
+layout_mode = 2
+
+[node name="RemoveButton" type="Button" parent="HBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/icon_max_width = 23
+icon = ExtResource("3_pnq3l")
