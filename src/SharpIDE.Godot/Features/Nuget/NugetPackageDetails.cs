@@ -86,12 +86,12 @@ public partial class NugetPackageDetails : VBoxContainer
 			if (projectPackageReferences.Count is 0)
 			{
 				scenes.ForEach(s => s.ClearInstallInfo());
+				return;
 			}
 			foreach (var projectPackageReference in projectPackageReferences)
 			{
 				var scene = scenes.Single(s => s.ProjectModel == projectPackageReference.Project);
-				scene.InstalledVersion = projectPackageReference.InstalledVersion;
-				scene.IsTransitive = projectPackageReference.IsTransitive;
+				scene.ProjectPackageReference = projectPackageReference;
 				scene.SetValues();
 			}
 		});
