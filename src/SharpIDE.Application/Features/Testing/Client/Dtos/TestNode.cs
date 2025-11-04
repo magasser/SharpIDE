@@ -25,6 +25,9 @@ public sealed record TestNode
 	[property: JsonProperty("execution-state")]
 	string ExecutionState,
 
+	[property: JsonProperty("outcome-kind")]
+	string OutcomeKind,
+
 	[property: JsonProperty("location.file")]
 	string LocationFile,
 
@@ -35,8 +38,20 @@ public sealed record TestNode
 	string LocationMethod,
 
 	[property: JsonProperty("location.line-start")]
-	int LocationLineStart,
+	int? LocationLineStart,
 
 	[property: JsonProperty("location.line-end")]
-	int LocationLineEnd);
+	int? LocationLineEnd,
+
+	[property: JsonProperty("time.duration-ms")]
+	double? TimeDurationMs,
+
+	[property: JsonProperty("error.message")]
+	string? ErrorMessage,
+
+	[property: JsonProperty("standardOutput")]
+	string? StandardOutput,
+
+	[property: JsonProperty("standardError")]
+	string? StandardError);
 
