@@ -139,7 +139,7 @@ public class DebuggingService
 		var configurationDoneRequest = new ConfigurationDoneRequest();
 		debugProtocolHost.SendRequestSync(configurationDoneRequest);
 	}
-	// Typically you would do attachRequest, configurationDoneRequest, setBreakpointsRequest, then ResumeRuntime. But netcoredbg blows up on configurationDoneRequuest if ResumeRuntime hasn't been called yet.
+	// Typically you would do attachRequest, setBreakpointsRequest, configurationDoneRequest, then ResumeRuntime. But netcoredbg blows up on configurationDoneRequest if ResumeRuntime hasn't been called yet.
 
 	public async Task StepOver(int threadId, CancellationToken cancellationToken)
 	{
