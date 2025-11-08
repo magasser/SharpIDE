@@ -20,6 +20,11 @@ A modern, cross platform & open source IDE for .NET
 ## Razor Syntax Highlighting
 <img width="1619" height="852" alt="image" src="https://github.com/user-attachments/assets/2935f3a3-a5b7-4949-96d6-06f0b5a77d33" />
 
+## Run
+<img width="1544" height="867" alt="image" src="https://github.com/user-attachments/assets/53c32fd2-959d-4e72-9e50-83edaa008d8b" />
+
+## Debug (WIP)
+<img width="1545" height="868" alt="image" src="https://github.com/user-attachments/assets/5f20f0d8-b31a-436c-b477-57961c10f558" />
 
 
 ### Building
