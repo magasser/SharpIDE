@@ -36,6 +36,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "tools\AppHost\Ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpIDE.Godot", "src\SharpIDE.Godot\SharpIDE.Godot.csproj", "{D306410D-3A28-4F1B-A09B-CA10041A7C53}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "iac", "iac", "{E239E6C6-8915-4F03-85B7-22AEAF281D14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deploy", "iac\Deploy\Deploy.csproj", "{52CD8910-88A4-4978-B107-C7B6C7FC3557}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{3852B2EE-7495-4DE1-805F-C198E3A9FF0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{2FAF7C76-F2D6-443D-B3A8-3FA5C4E267C7}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\create-release.yml = .github\workflows\create-release.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +141,18 @@ Global
 		{D306410D-3A28-4F1B-A09B-CA10041A7C53}.Release|x64.Build.0 = Debug|Any CPU
 		{D306410D-3A28-4F1B-A09B-CA10041A7C53}.Release|x86.ActiveCfg = Debug|Any CPU
 		{D306410D-3A28-4F1B-A09B-CA10041A7C53}.Release|x86.Build.0 = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|x64.Build.0 = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Debug|x86.Build.0 = Debug|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|x64.ActiveCfg = Release|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|x64.Build.0 = Release|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|x86.ActiveCfg = Release|Any CPU
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,5 +165,7 @@ Global
 		{C54A5E24-8F16-413F-87F1-BD5E57D2AC1E} = {DABBDFD2-C631-439C-9ACB-EDDF659D5257}
 		{CF00AC9C-F796-4C23-8D69-370F494999D7} = {DABBDFD2-C631-439C-9ACB-EDDF659D5257}
 		{D306410D-3A28-4F1B-A09B-CA10041A7C53} = {F4ED837F-888A-4D01-BCED-C360B9CE0865}
+		{52CD8910-88A4-4978-B107-C7B6C7FC3557} = {E239E6C6-8915-4F03-85B7-22AEAF281D14}
+		{2FAF7C76-F2D6-443D-B3A8-3FA5C4E267C7} = {3852B2EE-7495-4DE1-805F-C198E3A9FF0D}
 	EndGlobalSection
 EndGlobal
