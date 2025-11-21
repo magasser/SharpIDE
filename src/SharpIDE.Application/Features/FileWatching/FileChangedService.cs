@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.SolutionPersistence.Model;
+﻿using Microsoft.CodeAnalysis.Threading;
+using Microsoft.VisualStudio.SolutionPersistence.Model;
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Evaluation;
 using SharpIDE.Application.Features.Events;
@@ -104,73 +105,55 @@ public class FileChangedService(RoslynAnalysis roslynAnalysis, IdeOpenTabsFileMa
 		await afterSaveTask;
 	}
 
-	private CancellationTokenSource _updateSolutionDiagnosticsCts = new();
+	private CancellationSeries _updateSolutionDiagnosticsCtSeries = new();
 	private async Task HandleCsprojChanged(SharpIdeFile file)
 	{
 		var project = SolutionModel.AllProjects.SingleOrDefault(p => p.FilePath == file.Path);
 		if (project is null) return;
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await ProjectEvaluation.ReloadProject(file.Path);
 		await _roslynAnalysis.ReloadProject(project, CancellationToken.None);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 
 	private async Task HandleWorkspaceFileChanged(SharpIdeFile file, string newContents)
 	{
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await _roslynAnalysis.UpdateDocument(file, newContents);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 
 	private async Task HandleWorkspaceFileAdded(SharpIdeFile file, string contents)
 	{
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await _roslynAnalysis.AddDocument(file, contents);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 
 	private async Task HandleWorkspaceFileRemoved(SharpIdeFile file)
 	{
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await _roslynAnalysis.RemoveDocument(file);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 
 	private async Task HandleWorkspaceFileMoved(SharpIdeFile file, string oldFilePath)
 	{
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await _roslynAnalysis.MoveDocument(file, oldFilePath);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 
 	private async Task HandleWorkspaceFileRenamed(SharpIdeFile file, string oldFilePath)
 	{
-		var newCts = new CancellationTokenSource();
-		var oldCts = Interlocked.Exchange(ref _updateSolutionDiagnosticsCts, newCts);
-		await oldCts.CancelAsync();
-		oldCts.Dispose();
+		var newCts = _updateSolutionDiagnosticsCtSeries.CreateNext();
 		await _roslynAnalysis.RenameDocument(file, oldFilePath);
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
-		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts.Token);
+		await _roslynAnalysis.UpdateSolutionDiagnostics(newCts);
 	}
 }
