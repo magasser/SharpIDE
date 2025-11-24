@@ -965,7 +965,7 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 		return true;
 	}
 
-	public async Task AddDocument(SharpIdeFile fileModel, string content)
+	public async Task<bool> AddDocument(SharpIdeFile fileModel, string content)
 	{
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(RoslynAnalysis)}.{nameof(AddDocument)}");
 		await _solutionLoadedTcs.Task;
@@ -977,6 +977,12 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 		// This file probably belongs to this project, but we need to check its path against the globs for the project to make sure
 		var projectFileInfo = _projectFileInfoMap.GetValueOrDefault(probableProject.Id);
 		Guard.Against.Null(projectFileInfo);
+
+		var generatedFilesOutputDirectory = projectFileInfo.GeneratedFilesOutputDirectory;
+		if (generatedFilesOutputDirectory is not null && fileModel.Path.StartsWith(generatedFilesOutputDirectory, StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
 		var matchers = projectFileInfo.FileGlobs.Select(glob =>
 		{
 			var matcher = new Matcher();
@@ -1005,7 +1011,7 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 
 		if (belongsToProject is false)
 		{
-			return;
+			return false;
 		}
 
 		var existingDocumentIdsWithFilePath = _workspace!.CurrentSolution.GetDocumentIdsWithFilePath(fileModel.Path);
@@ -1026,6 +1032,7 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 			};
 			return newSolution;
 		}, WorkspaceChangeKind.DocumentAdded, documentId: documentId);
+		return true;
 	}
 
 	public async Task<bool> RemoveDocument(SharpIdeFile fileModel)

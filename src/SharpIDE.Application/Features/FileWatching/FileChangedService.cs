@@ -140,7 +140,8 @@ public class FileChangedService
 
 	private async Task HandleWorkspaceFileAdded(SharpIdeFile file, string contents)
 	{
-		await _roslynAnalysis.AddDocument(file, contents);
+		var success = await _roslynAnalysis.AddDocument(file, contents);
+		if (success is false) return;
 		GlobalEvents.Instance.SolutionAltered.InvokeParallelFireAndForget();
 		_updateSolutionDiagnosticsQueue.AddWork();
 	}
