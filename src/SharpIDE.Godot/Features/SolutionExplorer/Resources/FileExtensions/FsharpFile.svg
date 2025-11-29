@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   class="mud-icon-root mud-svg-icon mud-error-text mud-icon-size-medium"
+   focusable="false"
+   viewBox="0 0 24 24"
+   aria-hidden="true"
+   role="img"
+   style="fill: rgb(40, 167, 69);"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="FsharpFile.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="24.3125"
+     inkscape:cx="-1.4807198"
+     inkscape:cy="16.267352"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <text
+     x="11.912748"
+     y="13.454205"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+     font-size="16px"
+     font-weight="700"
+     id="text1"
+     style="display:none;fill:#24a394;fill-opacity:1">F#</text>
+  <path
+     d="M 10.772123,8.3057671 H 6.8189983 v 2.7499999 h 3.6328127 v 2.046875 H 6.8189983 v 4.351563 H 4.2955608 V 6.2510796 h 6.4765622 z m 9.75,0.796875 -0.304687,1.4062499 h -1.445313 l -0.429687,1.9375 h 1.617187 l -0.351562,1.40625 h -1.554688 l -0.609375,2.703125 h -1.5625 l 0.570313,-2.703125 h -1.789063 l -0.578125,2.703125 h -1.5625 l 0.554688,-2.703125 h -1.453125 l 0.289062,-1.40625 h 1.46875 l 0.414063,-1.9375 h -1.578125 l 0.265625,-1.4062499 h 1.601562 l 0.578125,-2.78125 h 1.601563 l -0.578125,2.78125 h 1.789062 l 0.59375,-2.78125 h 1.585938 l -0.578125,2.78125 z m -3.328125,1.4062499 h -1.8125 l -0.429687,1.9375 h 1.804687 z"
+     id="text1-9"
+     style="font-weight:700;font-size:16px;font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;dominant-baseline:middle;text-anchor:middle;fill:#24a394"
+     aria-label="F#" />
+</svg>
