@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://duyxg107nfh2f"]
+[gd_scene load_steps=6 format=3 uid="uid://duyxg107nfh2f"]
 
 [ext_resource type="Script" uid="uid://du4v3dyf0y3d8" path="res://Features/Nuget/NugetPanel.cs" id="1_t4nyu"]
 [ext_resource type="Texture2D" uid="uid://btlxqx3c08fjj" path="res://Features/SolutionExplorer/Resources/SlnIcon.svg" id="2_3q32m"]
+[ext_resource type="Texture2D" uid="uid://cmwkpdv6pxaai" path="res://Resources/refresh.svg" id="2_7rf8d"]
 [ext_resource type="PackedScene" uid="uid://cqc2xlt81ju8s" path="res://Features/Nuget/PackageEntry.tscn" id="2_arg4f"]
 [ext_resource type="PackedScene" uid="uid://odaefch2sdft" path="res://Features/Nuget/NugetPackageDetails.tscn" id="3_yr6k7"]
 
@@ -30,9 +31,18 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Label" type="Label" parent="VBoxContainer/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 text = "NuGet"
+
+[node name="RefreshButton" type="Button" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/icon_max_width = 15
+icon = ExtResource("2_7rf8d")
 
 [node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
 layout_mode = 2

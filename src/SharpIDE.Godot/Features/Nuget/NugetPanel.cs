@@ -14,6 +14,7 @@ public partial class NugetPanel : Control
 	private VBoxContainer _implicitlyInstalledPackagesItemList = null!;
 	private VBoxContainer _availablePackagesItemList = null!;
 	private OptionButton _solutionOrProjectOptionButton = null!;
+	private Button _refreshButton = null!;
 	
 	private Label _installedPackagesSlnOrProjectNameLabel = null!;
 	private Label _installedPackagesResultCountLabel = null!;
@@ -45,6 +46,7 @@ public partial class NugetPanel : Control
 		_implicitlyInstalledPackagesItemList = GetNode<VBoxContainer>("%ImplicitlyInstalledPackagesVBoxContainer");
 		_availablePackagesItemList = GetNode<VBoxContainer>("%AvailablePackagesVBoxContainer");
 		_solutionOrProjectOptionButton = GetNode<OptionButton>("%SolutionOrProjectOptionButton");
+		_refreshButton = GetNode<Button>("%RefreshButton");
 		_nugetPackageDetails = GetNode<NugetPackageDetails>("%NugetPackageDetails");
 		_installedPackagesSlnOrProjectNameLabel = GetNode<Label>("%InstalledPackagesSlnOrProjectNameLabel");
 		_installedPackagesResultCountLabel = GetNode<Label>("%InstalledPackagesResultCountLabel");
@@ -57,6 +59,7 @@ public partial class NugetPanel : Control
 		_implicitlyInstalledPackagesProgressBar.Visible = false;
 		_packageSearchProgressBar.Visible = false;
 		_nugetPackageDetails.Visible = false;
+		_refreshButton.Pressed += () => OnSolutionOrProjectSelected(_solutionOrProjectOptionButton.Selected);
 		_installedPackagesVboxContainer.QueueFreeChildren();
 		_implicitlyInstalledPackagesItemList.QueueFreeChildren();
 		_availablePackagesItemList.QueueFreeChildren();
