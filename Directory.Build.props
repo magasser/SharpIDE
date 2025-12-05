@@ -3,5 +3,6 @@
 		<!--		<TreatWarningsAsErrors Condition="'$(Configuration)' != 'Debug'">true</TreatWarningsAsErrors>-->
 		<UseArtifactsOutput>true</UseArtifactsOutput>
 		<Features>$(Features);use-roslyn-tokenizer=true</Features> <!-- idk if this does anything lol -->
+		<UsePublicApiAnalyzers>false</UsePublicApiAnalyzers> <!-- Disables Microsoft.CodeAnalysis.PublicApiAnalyzers, which we unfortunately transitively pull in -->
 	</PropertyGroup>
 </Project>
