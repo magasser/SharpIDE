@@ -250,7 +250,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 		folderItem.SetMetadata(0, new RefCountedContainer<SharpIdeFolder>(sharpIdeFolder));
 		
 		Observable.EveryValueChanged(sharpIdeFolder, folder => folder.Name)
-			.Skip(1).SubscribeAwait(async (s, ct) =>
+			.Skip(1).SubscribeOnThreadPool().ObserveOnThreadPool().SubscribeAwait(async (s, ct) =>
 			{
 				await this.InvokeAsync(() => folderItem.SetText(0, s));
 			}).AddTo(this);
@@ -301,7 +301,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 		fileItem.SetMetadata(0, new RefCountedContainer<SharpIdeFile>(sharpIdeFile));
 		
 		Observable.EveryValueChanged(sharpIdeFile, file => file.Name)
-			.Skip(1).SubscribeAwait(async (s, ct) =>
+			.Skip(1).SubscribeOnThreadPool().ObserveOnThreadPool().SubscribeAwait(async (s, ct) =>
 			{
 				await this.InvokeAsync(() =>
 				{

@@ -17,7 +17,7 @@ public partial class ForwardBackwardButtonContainer : HBoxContainer
         _forwardButton = GetNode<Button>("ForwardButton");
         _backwardButton.Pressed += OnBackwardButtonPressed;
         _forwardButton.Pressed += OnForwardButtonPressed;
-        _navigationHistoryService.Current.SubscribeOnThreadPool().SubscribeAwait(async (s, ct) =>
+        _navigationHistoryService.Current.SubscribeOnThreadPool().ObserveOnThreadPool().SubscribeAwait(async (s, ct) =>
         {
             await this.InvokeAsync(() =>
             {

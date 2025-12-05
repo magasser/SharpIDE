@@ -67,7 +67,8 @@ public partial class ProblemsPanel : Control
             treeItem.SetMetadata(0, new RefCountedContainer<SharpIdeProjectModel>(e.NewItem.Value));
             e.NewItem.View.Value = treeItem;
             
-            Observable.EveryValueChanged(e.NewItem.Value, s => s.Diagnostics.Count).Subscribe(s => treeItem.Visible = s is not 0).AddTo(this);
+            Observable.EveryValueChanged(e.NewItem.Value, s => s.Diagnostics.Count).SubscribeOnThreadPool().ObserveOnThreadPool()
+                .Subscribe(s => treeItem.Visible = s is not 0).AddTo(this);
             
             var projectDiagnosticsView = e.NewItem.Value.Diagnostics.CreateView(y => new TreeItemContainer());
             projectDiagnosticsView.ObserveChanged().SubscribeOnThreadPool().ObserveOnThreadPool()
