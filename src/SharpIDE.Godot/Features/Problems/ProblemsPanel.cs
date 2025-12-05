@@ -68,7 +68,7 @@ public partial class ProblemsPanel : Control
             e.NewItem.View.Value = treeItem;
             
             Observable.EveryValueChanged(e.NewItem.Value, s => s.Diagnostics.Count).SubscribeOnThreadPool().ObserveOnThreadPool()
-                .Subscribe(s => treeItem.Visible = s is not 0).AddTo(this);
+                .SubscribeAwait(async (s, ct) => await this.InvokeAsync(() => treeItem.Visible = s is not 0)).AddTo(this);
             
             var projectDiagnosticsView = e.NewItem.Value.Diagnostics.CreateView(y => new TreeItemContainer());
             projectDiagnosticsView.ObserveChanged().SubscribeOnThreadPool().ObserveOnThreadPool()
@@ -182,9 +182,10 @@ public partial class ProblemsPanel : Control
     
     private async Task FreeTreeItem(TreeItem? treeItem)
     {
+        if (treeItem is null) return;
         await this.InvokeAsync(() =>
         {
-            treeItem?.Free();
+            treeItem.Free();
         });
     }
     
