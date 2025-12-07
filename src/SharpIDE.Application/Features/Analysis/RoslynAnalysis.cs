@@ -419,7 +419,8 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 
 		var compilationWithAnalyzers = semanticModel.Compilation.WithAnalyzers(projectAnalyzers);
 
-		var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken: cancellationToken);
+		var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, null, cancellationToken);
+		var diagnostics = analysisResult.GetAllDiagnostics();
 		diagnostics = diagnostics.Where(d => d.Severity is not DiagnosticSeverity.Hidden).ToImmutableArray();
 		var result = diagnostics
 			.Select(d =>
