@@ -25,7 +25,7 @@ public partial class ThreadsVariablesSubTab : Control
 		_threadsTree = GetNode<Tree>("%ThreadsTree");
 		_stackFramesTree = GetNode<Tree>("%StackFramesTree");
 		_variablesTree = GetNode<Tree>("%VariablesTree");
-		GlobalEvents.Instance.DebuggerExecutionStopped.Subscribe(OnDebuggerExecutionStopped2);
+		GlobalEvents.Instance.DebuggerExecutionStopped.Subscribe(OnDebuggerExecutionStopped);
 		_threadsTree.ItemSelected += OnThreadSelected;
 		_stackFramesTree.ItemSelected += OnStackFrameSelected;
 	}
@@ -80,7 +80,7 @@ public partial class ThreadsVariablesSubTab : Control
 	}
 
 
-	private async Task OnDebuggerExecutionStopped2(ExecutionStopInfo stopInfo)
+	private async Task OnDebuggerExecutionStopped(ExecutionStopInfo stopInfo)
 	{
 		var threads = await _runService.GetThreadsAtStopPoint();
 		await this.InvokeAsync(() =>
