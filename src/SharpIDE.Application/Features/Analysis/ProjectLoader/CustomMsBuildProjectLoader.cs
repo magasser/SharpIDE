@@ -56,68 +56,68 @@ public partial class CustomMsBuildProjectLoader(Workspace workspace, ImmutableDi
 	}
 
 	/// <summary>
-    /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and
-    /// all the projects referenced by the project files.
-    /// </summary>
-    /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
-    /// current working directory.</param>
-    /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
-    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log MSBuild results.</param>
-    /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-    public new async Task<(SolutionInfo, Dictionary<ProjectId, ProjectFileInfo>)> LoadSolutionInfoAsync(
-        string solutionFilePath,
-        IProgress<ProjectLoadProgress>? progress = null,
-        ILogger? msbuildLogger = null,
-        CancellationToken cancellationToken = default)
-    {
-        if (solutionFilePath == null)
-        {
-            throw new ArgumentNullException(nameof(solutionFilePath));
-        }
+	/// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and
+	/// all the projects referenced by the project files.
+	/// </summary>
+	/// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
+	/// current working directory.</param>
+	/// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
+	/// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log MSBuild results.</param>
+	/// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+	public new async Task<(SolutionInfo, Dictionary<ProjectId, ProjectFileInfo>)> LoadSolutionInfoAsync(
+		string solutionFilePath,
+		IProgress<ProjectLoadProgress>? progress = null,
+		ILogger? msbuildLogger = null,
+		CancellationToken cancellationToken = default)
+	{
+		if (solutionFilePath == null)
+		{
+			throw new ArgumentNullException(nameof(solutionFilePath));
+		}
 
-        var reportingMode = GetReportingModeForUnrecognizedProjects();
+		var reportingMode = GetReportingModeForUnrecognizedProjects();
 
-        var reportingOptions = new DiagnosticReportingOptions(
-            onPathFailure: reportingMode,
-            onLoaderFailure: reportingMode);
+		var reportingOptions = new DiagnosticReportingOptions(
+			onPathFailure: reportingMode,
+			onLoaderFailure: reportingMode);
 
-        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
-        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
+		var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
+		var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
 
-        using (_dataGuard.DisposableWait(cancellationToken))
-        {
-            SetSolutionProperties(absoluteSolutionPath);
-        }
+		using (_dataGuard.DisposableWait(cancellationToken))
+		{
+			SetSolutionProperties(absoluteSolutionPath);
+		}
 
-        IBinLogPathProvider binLogPathProvider = null!; // TODO: Fix
+		IBinLogPathProvider binLogPathProvider = null!; // TODO: Fix
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
+		var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
+		await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
-        var worker = new CustomWorker(
-            _solutionServices,
-            _diagnosticReporter,
-            _pathResolver,
-            _projectFileExtensionRegistry,
-            buildHostProcessManager,
-            projectPaths,
-            // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
-            projectMap: null,
-            progress,
-            requestedProjectOptions: reportingOptions,
-            discoveredProjectOptions: reportingOptions,
-            preferMetadataForReferencesOfDiscoveredProjects: false);
+		var worker = new CustomWorker(
+			_solutionServices,
+			_diagnosticReporter,
+			_pathResolver,
+			_projectFileExtensionRegistry,
+			buildHostProcessManager,
+			projectPaths,
+			// TryGetAbsoluteSolutionPath should not return an invalid path
+			baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
+			projectMap: null,
+			progress,
+			requestedProjectOptions: reportingOptions,
+			discoveredProjectOptions: reportingOptions,
+			preferMetadataForReferencesOfDiscoveredProjects: false);
 
-        var (projectInfos, projectFileInfos) = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+		var (projectInfos, projectFileInfos) = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
-        // construct workspace from loaded project infos
-        var solutionInfo = SolutionInfo.Create(
-            SolutionId.CreateNewId(debugName: absoluteSolutionPath),
-            version: default,
-            absoluteSolutionPath,
-            projectInfos);
+		// construct workspace from loaded project infos
+		var solutionInfo = SolutionInfo.Create(
+			SolutionId.CreateNewId(debugName: absoluteSolutionPath),
+			version: default,
+			absoluteSolutionPath,
+			projectInfos);
 
-        return (solutionInfo, projectFileInfos);
-    }
+		return (solutionInfo, projectFileInfos);
+	}
 }
