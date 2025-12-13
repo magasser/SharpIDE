@@ -34,7 +34,7 @@ public class RoslynAnalysisTests
 
 	    var roslynAnalysis = new RoslynAnalysis(logger, buildService, analyzerFileWatcher);
 
-	    var solutionModel = await VsPersistenceMapper.GetSolutionModel(@"C:\Users\Matthew\Documents\Git\SharpIDE\SharpIDE.sln", TestContext.Current.CancellationToken);
+	    var solutionModel = await VsPersistenceMapper.GetSolutionModel(@"C:\Users\Matthew\Documents\Git\SharpIDE\SharpIDE.slnx", TestContext.Current.CancellationToken);
 	    var sharpIdeApplicationProject = solutionModel.AllProjects.Single(p => p.Name == "SharpIDE.Application");
 
 	    var timer = Stopwatch.StartNew();

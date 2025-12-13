@@ -42,7 +42,7 @@ using DiagnosticSeverity = Microsoft.CodeAnalysis.DiagnosticSeverity;
 
 namespace SharpIDE.Application.Features.Analysis;
 
-public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildService, AnalyzerFileWatcher analyzerFileWatcher)
+public partial class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildService, AnalyzerFileWatcher analyzerFileWatcher)
 {
 	private readonly ILogger<RoslynAnalysis> _logger = logger;
 	private readonly BuildService _buildService = buildService;
@@ -136,6 +136,12 @@ public class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService buildSe
 			await _analyzerFileWatcher.StartWatchingFiles(analyzerReferencePaths);
 			_workspace.ClearSolution();
 			var solution = _workspace.AddSolution(solutionInfo);
+
+			// If these aren't added, IDiagnosticAnalyzerService will not return compiler analyzer diagnostics
+			// Note that we aren't currently using IDiagnosticAnalyzerService
+			//var solutionAnalyzerReferences = CreateSolutionLevelAnalyzerReferencesForWorkspace(_workspace);
+			//solution = solution.WithAnalyzerReferences(solutionAnalyzerReferences);
+			//_workspace.SetCurrentSolution(solution);
 		}
 		timer.Stop();
 		_logger.LogInformation("RoslynAnalysis: Solution loaded in {ElapsedMilliseconds}ms", timer.ElapsedMilliseconds);
