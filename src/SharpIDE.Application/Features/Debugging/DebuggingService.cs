@@ -171,29 +171,29 @@ public class DebuggingService
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		var nextRequest = new NextRequest(threadId);
-		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 		_debugProtocolHost.SendRequestSync(nextRequest);
+		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 	}
 	public async Task StepInto(int threadId, CancellationToken cancellationToken)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		var stepInRequest = new StepInRequest(threadId);
-		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 		_debugProtocolHost.SendRequestSync(stepInRequest);
+		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 	}
 	public async Task StepOut(int threadId, CancellationToken cancellationToken)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		var stepOutRequest = new StepOutRequest(threadId);
-		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 		_debugProtocolHost.SendRequestSync(stepOutRequest);
+		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 	}
 	public async Task Continue(int threadId, CancellationToken cancellationToken)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		var continueRequest = new ContinueRequest(threadId);
-		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 		_debugProtocolHost.SendRequestSync(continueRequest);
+		GlobalEvents.Instance.DebuggerExecutionContinued.InvokeParallelFireAndForget();
 	}
 
 	public async Task<List<ThreadModel>> GetThreadsAtStopPoint()
