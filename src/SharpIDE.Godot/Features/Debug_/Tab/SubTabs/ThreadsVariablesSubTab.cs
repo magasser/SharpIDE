@@ -52,9 +52,9 @@ public partial class ThreadsVariablesSubTab : Control
 				var variables = await _runService.GetVariablesForVariablesReference(variablesReferenceId);
 				await this.InvokeAsync(() =>
 				{
-					var firstChild = item.GetFirstChild();
-					Guard.Against.Null(firstChild);
-					firstChild.Visible = false; // Set to visible false rather than RemoveChild, so we don't have to Free
+					var placeholderLoadingChild = item.GetFirstChild();
+					Guard.Against.Null(placeholderLoadingChild);
+					placeholderLoadingChild.Visible = false; // Set to visible false rather than RemoveChild, so we don't have to Free
 					foreach (var variable in variables)
 					{
 						AddVariableToTreeItem(item, variable);
