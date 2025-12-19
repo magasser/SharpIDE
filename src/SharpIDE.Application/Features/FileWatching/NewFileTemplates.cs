@@ -30,4 +30,62 @@ public static class NewFileTemplates
 		names.Reverse();
 		return string.Join('.', names);
 	}
+
+	public static string CsprojLibrary(string sdk, string targetFramework)
+	{
+		var text = $$"""
+		             <Project Sdk="{{sdk}}">
+
+		                 <PropertyGroup>
+		                     <OutputType>Exe</OutputType>
+		                     <TargetFramework>{{targetFramework}}</TargetFramework>
+		                     <ImplicitUsings>enable</ImplicitUsings>
+		                     <Nullable>enable</Nullable>
+		                 </PropertyGroup>
+
+		             </Project>
+
+		             """;
+
+		return text;
+	}
+
+	public static string CsprojConsole(string sdk, string targetFramework)
+	{
+		var text = $$"""
+		             <Project Sdk="{{sdk}}">
+
+		                 <PropertyGroup>
+		                     <OutputType>Exe</OutputType>
+		                     <TargetFramework>{{targetFramework}}</TargetFramework>
+		                     <ImplicitUsings>enable</ImplicitUsings>
+		                     <Nullable>enable</Nullable>
+		                 </PropertyGroup>
+
+		             </Project>
+
+		             """;
+
+		return text;
+	}
+
+	public static string CsprojWpfApp(string sdk, string targetFramework)
+	{
+		var text = $$"""
+		             <Project Sdk="{{sdk}}">
+
+		                 <PropertyGroup>
+		                     <OutputType>Exe</OutputType>
+		                     <TargetFramework>{{targetFramework}}</TargetFramework>
+		                     <ImplicitUsings>enable</ImplicitUsings>
+		                     <Nullable>enable</Nullable>
+		                     <UseWPF>true</UseWPF>
+		                 </PropertyGroup>
+
+		             </Project>
+
+		             """;
+
+		return text;
+	}
 }
