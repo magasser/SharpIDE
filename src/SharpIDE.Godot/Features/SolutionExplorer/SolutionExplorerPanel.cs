@@ -90,6 +90,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 			case (MouseButtonMask.Left, RefCountedContainer<SharpIdeFolder>): break;
 			case (MouseButtonMask.Right, RefCountedContainer<SharpIdeFolder> folderContainer): OpenContextMenuFolder(folderContainer.Item, selected); break;
 			case (MouseButtonMask.Left, RefCountedContainer<SharpIdeSolutionFolder>): break;
+			case (MouseButtonMask.Right, RefCountedContainer<SharpIdeSolutionFolder> solutionFolderContainer): OpenContextMenuSolutionFolder(solutionFolderContainer.Item); break;
 			default: break;
 		}
 	}

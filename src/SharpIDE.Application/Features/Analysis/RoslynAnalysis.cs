@@ -430,6 +430,16 @@ public partial class RoslynAnalysis(ILogger<RoslynAnalysis> logger, BuildService
 			.SelectMany(r => r.GetAnalyzers(document.Project.Language))
 			.ToImmutableArray();
 
+		if (projectAnalyzers.Length is 0)
+		{
+			_logger.LogInformation(
+				"RoslynAnalysis: No project analyzers for language {Lanugage} in project {Project}.",
+				document.Project.Language,
+				document.Project.Name);
+
+			return ImmutableArray<SharpIdeDiagnostic>.Empty;
+		}
+
 		var compilationWithAnalyzers = semanticModel.Compilation.WithAnalyzers(projectAnalyzers);
 
 		var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, null, cancellationToken);

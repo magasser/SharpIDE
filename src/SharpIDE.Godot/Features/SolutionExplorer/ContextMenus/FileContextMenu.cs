@@ -10,8 +10,8 @@ file enum FileContextMenuOptions
     Open = 0,
     RevealInFileExplorer = 1,
     CopyFullPath = 2,
-    Rename = 3,
-    Delete = 4
+    Delete = 3,
+    Rename = 4
 }
 
 public partial class SolutionExplorerPanel
@@ -26,8 +26,8 @@ public partial class SolutionExplorerPanel
         menu.AddSeparator();
         menu.AddItem("Copy Full Path", (int)FileContextMenuOptions.CopyFullPath);
         menu.AddSeparator();
-        menu.AddItem("Rename", (int)FileContextMenuOptions.Rename);
         menu.AddItem("Delete", (int)FileContextMenuOptions.Delete);
+        menu.AddItem("Rename", (int)FileContextMenuOptions.Rename);
         if (file.Parent is SharpIdeSolutionFolder) menu.SetItemDisabled((int)FileContextMenuOptions.Delete, true);
         menu.PopupHide += () => menu.QueueFree();
         menu.IdPressed += id =>
@@ -44,13 +44,6 @@ public partial class SolutionExplorerPanel
             else if (actionId is FileContextMenuOptions.CopyFullPath)
             {
                 DisplayServer.ClipboardSet(file.Path);
-            }
-            else if (actionId is FileContextMenuOptions.Rename)
-            {
-                var renameFileDialog = _renameFileDialogScene.Instantiate<RenameFileDialog>();
-                renameFileDialog.File = file;
-                AddChild(renameFileDialog);
-                renameFileDialog.PopupCentered();
             }
             else if (actionId is FileContextMenuOptions.Delete)
             {
@@ -77,6 +70,13 @@ public partial class SolutionExplorerPanel
                         await _ideFileOperationsService.DeleteFile(file);
                     }
                 });
+            }
+            else if (actionId is FileContextMenuOptions.Rename)
+            {
+                var renameFileDialog = _renameFileDialogScene.Instantiate<RenameFileDialog>();
+                renameFileDialog.File = file;
+                AddChild(renameFileDialog);
+                renameFileDialog.PopupCentered();
             }
         };
 			
