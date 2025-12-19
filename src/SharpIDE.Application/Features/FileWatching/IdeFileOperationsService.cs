@@ -106,15 +106,18 @@ public class IdeFileOperationsService(SharpIdeSolutionModificationService sharpI
 		return sharpIdeFile;
 	}
 
-	public async Task<SharpIdeProjectModel> CreateProject(ISharpIdeNode parentNode, string newProjectName, string projectDirectoryPath)
+	// TODO: Pass project type to create different templates
+	public async Task<SharpIdeFile> CreateCsprojFile(ISolutionOrSolutionFolder parentNode, string newProjectName, string projectDirectoryPath)
 	{
 		var newProjectPath = Path.Combine(projectDirectoryPath, newProjectName);
 		if (File.Exists(newProjectPath)) throw new InvalidOperationException($"Project {newProjectPath} already exists.");
+
 		var projectName = Path.GetFileNameWithoutExtension(newProjectName);
-		var @namespace = NewFileTemplates.ComputeNamespace(parentNode);
-		var fileText = NewFileTemplates.CsharpClass(className, @namespace);
-		await File.WriteAllTextAsync(newFilePath, fileText);
-		var sharpIdeFile = await _sharpIdeSolutionModificationService.CreateFile(parentNode, newFilePath, newFileName, fileText);
+
+		var fileText = NewFileTemplates.CsprojLibrary("Microsoft.NET.Sdk", "net10.0");
+		await File.WriteAllTextAsync(newProjectPath, fileText);
+
+		var sharpIdeFile = await _sharpIdeSolutionModificationService.CreateFile(parentNode, newProjectPath, projectName, fileText);
 		return sharpIdeFile;
 	}
 

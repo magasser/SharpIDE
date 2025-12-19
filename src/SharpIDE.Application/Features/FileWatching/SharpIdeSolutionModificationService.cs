@@ -235,4 +235,13 @@ public class SharpIdeSolutionModificationService(FileChangedService fileChangedS
 		await _fileChangedService.SharpIdeFileRenamed(fileToRename, oldPath);
 		return fileToRename;
 	}
+
+	private static SharpIdeSolutionModel GetSolution(ISolutionOrSolutionFolder parentNode) => parentNode switch
+		{
+			SharpIdeSolutionModel solution => solution,
+			SharpIdeSolutionFolder folder => folder.Parent as SharpIdeSolutionModel ??
+			                                 throw new InvalidOperationException("Parent of solution folder must be solution"),
+
+			_ => throw new InvalidOperationException("Parent node must be a solution or solution folder")
+		};
 }

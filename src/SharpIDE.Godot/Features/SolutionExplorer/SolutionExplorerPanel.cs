@@ -188,7 +188,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 	        folderItem.SetMetadata(0, new RefCountedContainer<SharpIdeSolutionFolder>(slnFolder));
 
 	        // Observe folder sub-collections
-	        var subFoldersView = slnFolder.Folders.CreateView(y => new TreeItemContainer());
+	        var subFoldersView = slnFolder.SlnFolders.CreateView(y => new TreeItemContainer());
 	        subFoldersView.Unfiltered.ToList().ForEach(s => s.View.Value = CreateSlnFolderTreeItem(_tree, folderItem, s.Value));
 	        
 	        subFoldersView.ObserveChanged().SubscribeOnThreadPool().ObserveOnThreadPool()

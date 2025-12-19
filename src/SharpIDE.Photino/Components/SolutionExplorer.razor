@@ -70,7 +70,7 @@
 			 <MudTreeViewItem T="ISharpIdeNode" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Folder" IconColor="Color.Primary" Value="@slnFolder" Text="@slnFolder.Name" @bind-Expanded="@slnFolder.Expanded">
 				 @if (slnFolder.Expanded)
 				 {
-					 @foreach (var childFolder in slnFolder.Folders)
+					 @foreach (var childFolder in slnFolder.SlnFolders)
 					 {
 						 @GetSolutionFolderFragment(childFolder)
 					 }

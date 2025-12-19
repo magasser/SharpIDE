@@ -20,6 +20,12 @@ public interface ISolutionOrProject
 {
 	public string DirectoryPath { get; set; }
 }
+
+public interface ISolutionOrSolutionFolder : IExpandableSharpIdeNode
+{
+	ObservableHashSet<SharpIdeSolutionFolder> SlnFolders { get; set; }
+	ObservableHashSet<SharpIdeProjectModel> Projects { get; set; }
+}
 public interface IFolderOrProject : IExpandableSharpIdeNode, IChildSharpIdeNode
 {
 	public ObservableList<SharpIdeFolder> Folders { get; init; }
@@ -48,7 +54,7 @@ public interface IChildSharpIdeNode
 	}
 }
 
-public class SharpIdeSolutionModel : ISharpIdeNode, IExpandableSharpIdeNode, ISolutionOrProject
+public class SharpIdeSolutionModel : ISharpIdeNode, IExpandableSharpIdeNode, ISolutionOrProject, ISolutionOrSolutionFolder
 {
 	public required string Name { get; set; }
 	public required string FilePath { get; set; }
@@ -70,17 +76,18 @@ public class SharpIdeSolutionModel : ISharpIdeNode, IExpandableSharpIdeNode, ISo
 		Name = solutionName;
 		FilePath = solutionFilePath;
 		DirectoryPath = Path.GetDirectoryName(solutionFilePath)!;
-		Projects = new ObservableHashSet<SharpIdeProjectModel>(intermediateModel.Projects.Select(s => new SharpIdeProjectModel(s, allProjects, allFiles, allFolders, this)));
+		Projects = new ObservableHashSet<SharpIdeProjectModel>(intermediateModel.Projects.Select(s => new SharpIdeProjectModel(s.Model.ActualDisplayName, s.FullFilePath, allProjects, allFiles, allFolders, this)));
 		SlnFolders = new ObservableHashSet<SharpIdeSolutionFolder>(intermediateModel.SolutionFolders.Select(s => new SharpIdeSolutionFolder(s, allProjects, allFiles, allFolders, this)));
 		AllProjects = allProjects.ToHashSet();
 		AllFiles = new ConcurrentDictionary<string, SharpIdeFile>(allFiles.DistinctBy(s => s.Path).ToDictionary(s => s.Path));
 		AllFolders = allFolders.ToHashSet();
 	}
 }
-public class SharpIdeSolutionFolder : ISharpIdeNode, IExpandableSharpIdeNode, IChildSharpIdeNode
+public class SharpIdeSolutionFolder : ISharpIdeNode, IExpandableSharpIdeNode, IChildSharpIdeNode, ISolutionOrSolutionFolder
 {
 	public required string Name { get; set; }
-	public required ObservableHashSet<SharpIdeSolutionFolder> Folders { get; set; }
+	public required string SolutionPath { get; set; }
+	public required ObservableHashSet<SharpIdeSolutionFolder> SlnFolders { get; set; }
 	public required ObservableHashSet<SharpIdeProjectModel> Projects { get; set; }
 	public required ObservableHashSet<SharpIdeFile> Files { get; set; }
 	public bool Expanded { get; set; }
@@ -90,10 +97,11 @@ public class SharpIdeSolutionFolder : ISharpIdeNode, IExpandableSharpIdeNode, IC
 	internal SharpIdeSolutionFolder(IntermediateSlnFolderModel intermediateModel, ConcurrentBag<SharpIdeProjectModel> allProjects, ConcurrentBag<SharpIdeFile> allFiles, ConcurrentBag<SharpIdeFolder> allFolders, IExpandableSharpIdeNode parent)
 	{
 		Name = intermediateModel.Model.Name;
+		SolutionPath = intermediateModel.Model.Path;
 		Parent = parent;
 		Files = new ObservableHashSet<SharpIdeFile>(intermediateModel.Files.Select(s => new SharpIdeFile(s.FullPath, s.Name, s.Extension, this, allFiles)));
-		Folders = new ObservableHashSet<SharpIdeSolutionFolder>(intermediateModel.Folders.Select(x => new SharpIdeSolutionFolder(x, allProjects, allFiles, allFolders, this)));
-		Projects = new ObservableHashSet<SharpIdeProjectModel>(intermediateModel.Projects.Select(x => new SharpIdeProjectModel(x, allProjects, allFiles, allFolders, this)));
+		SlnFolders = new ObservableHashSet<SharpIdeSolutionFolder>(intermediateModel.Folders.Select(x => new SharpIdeSolutionFolder(x, allProjects, allFiles, allFolders, this)));
+		Projects = new ObservableHashSet<SharpIdeProjectModel>(intermediateModel.Projects.Select(x => new SharpIdeProjectModel(x.Model.ActualDisplayName, x.FullFilePath, allProjects, allFiles, allFolders, this)));
 	}
 }
 public class SharpIdeProjectModel : ISharpIdeNode, IExpandableSharpIdeNode, IChildSharpIdeNode, IFolderOrProject, ISolutionOrProject
@@ -111,15 +119,15 @@ public class SharpIdeProjectModel : ISharpIdeNode, IExpandableSharpIdeNode, IChi
 	public required Task<Project> MsBuildEvaluationProjectTask { get; set; }
 
 	[SetsRequiredMembers]
-	internal SharpIdeProjectModel(IntermediateProjectModel projectModel, ConcurrentBag<SharpIdeProjectModel> allProjects, ConcurrentBag<SharpIdeFile> allFiles, ConcurrentBag<SharpIdeFolder> allFolders, IExpandableSharpIdeNode parent)
+	internal SharpIdeProjectModel(string name, string filePath, ConcurrentBag<SharpIdeProjectModel> allProjects, ConcurrentBag<SharpIdeFile> allFiles, ConcurrentBag<SharpIdeFolder> allFolders, IExpandableSharpIdeNode parent)
 	{
 		Parent = parent;
-		Name = projectModel.Model.ActualDisplayName;
-		FilePath = projectModel.FullFilePath;
-		DirectoryPath = Path.GetDirectoryName(projectModel.FullFilePath)!;
-		Files = new ObservableList<SharpIdeFile>(TreeMapperV2.GetFiles(projectModel.FullFilePath, this, allFiles));
-		Folders = new ObservableList<SharpIdeFolder>(TreeMapperV2.GetSubFolders(projectModel.FullFilePath, this, allFiles, allFolders));
-		MsBuildEvaluationProjectTask = Task.Run(() => ProjectEvaluation.GetProject(projectModel.FullFilePath));
+		Name = name;
+		FilePath = filePath;
+		DirectoryPath = Path.GetDirectoryName(filePath)!;
+		Files = new ObservableList<SharpIdeFile>(TreeMapperV2.GetFiles(filePath, this, allFiles));
+		Folders = new ObservableList<SharpIdeFolder>(TreeMapperV2.GetSubFolders(filePath, this, allFiles, allFolders));
+		MsBuildEvaluationProjectTask = Task.Run(() => ProjectEvaluation.GetProject(filePath));
 		allProjects.Add(this);
 	}
 
