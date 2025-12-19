@@ -1,4 +1,7 @@
 ﻿using Godot;
+
+using R3;
+
 using SharpIDE.Application.Features.FileWatching;
 using SharpIDE.Application.Features.SolutionDiscovery;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
@@ -83,27 +86,24 @@ public partial class SolutionExplorerPanel
             }
         };
 			
-        var globalMousePosition = GetGlobalMousePosition();
-        menu.Position = new Vector2I((int)globalMousePosition.X, (int)globalMousePosition.Y);
+			
+        menu.Position = GetGlobalMousePosition().ToVector2I();
         menu.Popup();
     }
 
-    private void OnCreateNewSubmenuPressed(long id, IFolderOrProject folder)
+    private void OnCreateDirectory(IFolderOrProject folder)
     {
-        var actionId = (CreateNewSubmenuOptions)id;
-        if (actionId is CreateNewSubmenuOptions.Directory)
-        {
-            var newDirectoryDialog = _newDirectoryDialogScene.Instantiate<NewDirectoryDialog>();
-            newDirectoryDialog.ParentFolder = folder;
-            AddChild(newDirectoryDialog);
-            newDirectoryDialog.PopupCentered();
-        }
-        else if (actionId is CreateNewSubmenuOptions.CSharpFile)
-        {
-            var newCsharpFileDialog = _newCsharpFileDialogScene.Instantiate<NewCsharpFileDialog>();
-            newCsharpFileDialog.ParentNode = folder;
-            AddChild(newCsharpFileDialog);
-            newCsharpFileDialog.PopupCentered();
-        }
+        var newDirectoryDialog = _newDirectoryDialogScene.Instantiate<NewDirectoryDialog>();
+        newDirectoryDialog.ParentFolder = folder;
+        AddChild(newDirectoryDialog);
+        newDirectoryDialog.PopupCentered();
+    }
+
+    private void OnCreateCsharpFile(IFolderOrProject folder)
+    {
+        var newCsharpFileDialog = _newCsharpFileDialogScene.Instantiate<NewCsharpFileDialog>();
+        newCsharpFileDialog.ParentNode = folder;
+        AddChild(newCsharpFileDialog);
+        newCsharpFileDialog.PopupCentered();
     }
 }

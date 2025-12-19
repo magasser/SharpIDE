@@ -1,4 +1,7 @@
 ﻿using Godot;
+
+using R3;
+
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Build;
 using SharpIDE.Application.Features.Evaluation;
@@ -36,69 +39,58 @@ public partial class SolutionExplorerPanel
 
     private void OpenContextMenuProject(SharpIdeProjectModel project)
     {
-        var menu = new PopupMenu();
-        AddChild(menu);
-        var createNewSubmenu = new PopupMenu();
-        menu.AddSubmenuNodeItem("Add", createNewSubmenu, (int)ProjectContextMenuOptions.CreateNew);
-        menu.AddSeparator();
-        createNewSubmenu.AddItem("Directory", (int)CreateNewSubmenuOptions.Directory);
-        createNewSubmenu.AddItem("C# File", (int)CreateNewSubmenuOptions.CSharpFile);
-        createNewSubmenu.IdPressed += id => OnCreateNewSubmenuPressed(id, project);
+        var menu = SharpIdeContextMenuBuilder
+                   .Create()
+                   .AddSubmenu(
+                       "Add",
+                       SharpIdeContextMenuBuilder
+                           .Create()
+                           .AddMenuItem("Directory", () => OnCreateDirectory(project))
+                           .AddMenuItem("C# File", () => OnCreateCsharpFile(project))
+                           .Build())
+                   .AddIconItem("Run", () => RunProject(project), _runIcon, maxWidth: 20)
+                   .AddSeparator()
+                   .AddMenuItem("Build", () => MsBuildProject(project, BuildType.Build))
+                   .AddMenuItem("Rebuild", () => MsBuildProject(project, BuildType.Rebuild))
+                   .AddMenuItem("Clean", () => MsBuildProject(project, BuildType.Clean))
+                   .AddMenuItem("Restore", () => MsBuildProject(project, BuildType.Restore))
+                   .AddSeparator()
+                   .AddMenuItem(".NET User Secrets", () => ShowUserSecrets(project))
+                   .Build();
         
-        menu.AddIconItem(_runIcon, "Run", (int)ProjectContextMenuOptions.Run);
-        menu.SetItemIconMaxWidth((int)ProjectContextMenuOptions.Run, 20);
-        menu.AddSeparator();
-        menu.AddItem("Build", (int)ProjectContextMenuOptions.Build);
-        menu.AddItem("Rebuild", (int)ProjectContextMenuOptions.Rebuild);
-        menu.AddItem("Clean", (int)ProjectContextMenuOptions.Clean);
-        menu.AddItem("Restore", (int)ProjectContextMenuOptions.Restore);
-        menu.AddSeparator();
-        menu.AddItem(".NET User Secrets", (int)ProjectContextMenuOptions.DotnetUserSecrets);
-        menu.PopupHide += () => menu.QueueFree();
-        menu.IdPressed += id =>
-        {
-            var actionId = (ProjectContextMenuOptions)id;
-            if (actionId is ProjectContextMenuOptions.Run)
-            {
-                _ = Task.GodotRun(async () =>
-                {
-		            GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Run);
-                    await _runService.RunProject(project);
-                });
-            }
-            if (actionId is ProjectContextMenuOptions.Build)
-            {
-                _ = Task.GodotRun(async () => await MsBuildProject(project, BuildType.Build));
-            }
-            else if (actionId is ProjectContextMenuOptions.Rebuild)
-            {
-                _ = Task.GodotRun(async () => await MsBuildProject(project, BuildType.Rebuild));
-            }
-            else if (actionId is ProjectContextMenuOptions.Clean)
-            {
-                _ = Task.GodotRun(async () => await MsBuildProject(project, BuildType.Clean));
-            }
-            else if (actionId is ProjectContextMenuOptions.Restore)
-            {
-                _ = Task.GodotRun(async () => await MsBuildProject(project, BuildType.Restore));
-            }
-            else if (actionId is ProjectContextMenuOptions.DotnetUserSecrets)
-            {
-                _ = Task.GodotRun(async () =>
-                {
-                    var (userSecretsId, filePath) = await _dotnetUserSecretsService.GetOrCreateUserSecretsId(project);
-                    OS.ShellShowInFileManager(filePath);
-                });
-            }
-        };
+        AddChild(menu);
 			
-        var globalMousePosition = GetGlobalMousePosition();
-        menu.Position = new Vector2I((int)globalMousePosition.X, (int)globalMousePosition.Y);
+        menu.Position = GetGlobalMousePosition().ToVector2I();
         menu.Popup();
     }
-    private async Task MsBuildProject(SharpIdeProjectModel project, BuildType buildType)
+
+    private void RunProject(SharpIdeProjectModel project)
     {
-        GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Build);
-        await _buildService.MsBuildAsync(project.FilePath, buildType);
+        _ = Task.GodotRun(async () =>
+        {
+            GodotGlobalEvents.Instance.BottomPanelTabExternallySelected
+                             .InvokeParallelFireAndForget(BottomPanelType.Run);
+            await _runService.RunProject(project);
+        });
+    }
+    
+    private void MsBuildProject(SharpIdeProjectModel project, BuildType buildType)
+    {
+        _ = Task.GodotRun(async () =>
+        {
+            GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(
+                BottomPanelType.Build);
+            await _buildService.MsBuildAsync(project.FilePath, buildType);
+        });
+    }
+
+    private void ShowUserSecrets(SharpIdeProjectModel project)
+    {
+        _ = Task.GodotRun(async () =>
+        {
+            var (userSecretsId, filePath) = await _dotnetUserSecretsService.GetOrCreateUserSecretsId(project);
+            OS.ShellShowInFileManager(filePath);
+            
+        });
     }
 }
