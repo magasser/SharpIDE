@@ -83,7 +83,7 @@ public partial class DiAutoload : Node
                     GetTree().Quit();
                     return;
                 }
-                
+
                 field.SetValue(target, service);
             }
         }

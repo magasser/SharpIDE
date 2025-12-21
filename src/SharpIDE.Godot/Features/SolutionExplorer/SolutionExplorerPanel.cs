@@ -143,7 +143,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 	}
 
 	[RequiresGodotUiThread]
-	public async Task BindToSolution(SharpIdeSolutionModel solution, [CallerMemberName] string caller = "")
+	public async Task BindToSolution(SharpIdeSolutionModel solution)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		using var _ = SharpIdeOtel.Source.StartActivity($"{nameof(SolutionExplorerPanel)}.{nameof(BindToSolution)}");
@@ -232,10 +232,8 @@ public partial class SolutionExplorerPanel : MarginContainer
 	}
 
 	[RequiresGodotUiThread]
-	private TreeItem CreateProjectTreeItem(Tree tree, TreeItem parent, SharpIdeProjectModel projectModel, [CallerMemberName] string caller = "")
+	private TreeItem CreateProjectTreeItem(Tree tree, TreeItem parent, SharpIdeProjectModel projectModel)
 	{
-		GD.Print($"[{caller}] CreateProjectTreeItem({projectModel.FilePath})");
-		
 		var projectItem = tree.CreateItem(parent);
 		projectItem.SetText(0, projectModel.Name);
 		projectItem.SetIcon(0, CsprojIcon);

@@ -1,251 +1,251 @@
 using Godot;
 
-using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
-
 namespace SharpIDE.Godot.Features.Layout;
 
 public partial class IdeDockLayout : Control
 {
-	[Export]
-	public int DockComponentSeparation { get; set; } = 0;
-	
-	private readonly Dictionary<Control, IdeLayoutNode> _nodeMap = [];
-	private IdeLayoutNode _layout = null!;
+    private readonly Dictionary<Control, IdeLayoutNode> _nodeMap = [];
+    private IdeLayoutNode _layout = null!;
 
-	private IdeDockOverlay _dockOverlay = null!;
+    private IdeDockOverlay _dockOverlay = null!;
 
-	private Control? _layoutNode;
+    private Control? _layoutNode;
 
-	/// <inheritdoc />
-	public override void _Ready()
-	{
-		_dockOverlay = GetNode<IdeDockOverlay>("%DockOverlay");
+    [Export]
+    public int DockComponentSeparation { get; set; }
 
-		FocusExited += _dockOverlay.EndDrag;
-	}
+    /// <inheritdoc />
+    public override void _Ready()
+    {
+        _dockOverlay = GetNode<IdeDockOverlay>("%DockOverlay");
 
-	/// <inheritdoc />
-	public override void _UnhandledKeyInput(InputEvent input)
-	{
-		if (input is InputEventKey { Keycode: Key.Escape, Pressed: true })
-		{
-			_dockOverlay.EndDrag();
-		}
-	}
+        FocusExited += _dockOverlay.EndDrag;
+    }
 
-	public void UpdateLayout(IdeLayoutNode layout)
-	{
-		_layout = layout;
-		RebuildLayoutTree();
-	}
-	
-	private void RebuildLayoutTree()
-	{
-		_dockOverlay.ClearDockTargets();
+    /// <inheritdoc />
+    public override void _UnhandledKeyInput(InputEvent input)
+    {
+        if (input is InputEventKey { Keycode: Key.Escape, Pressed: true })
+        {
+            _dockOverlay.EndDrag();
+        }
+    }
 
-		_layoutNode?.QueueFree();
-		_layoutNode = BuildLayoutTree(_layout);
-		AddChild(_layoutNode);
-	}
+    public void UpdateLayout(IdeLayoutNode layout)
+    {
+        _layout = layout;
+        RebuildLayoutTree();
+    }
 
-	private Control BuildLayoutTree(IdeLayoutNode layoutNode)
-	{
-		return layoutNode switch
-		{
-			IdeSplitNode splitNode => BuildSplitLayout(splitNode),
-			IdeTabGroupNode tabGroupNode => BuildTabGroupLayout(tabGroupNode),
-			IdeSceneNode viewNode => BuildSceneLayout(viewNode),
+    private void RebuildLayoutTree()
+    {
+        _dockOverlay.ClearDockTargets();
 
-			_ => throw new ArgumentException(
-					 $"The layout node of type '{layoutNode.GetType().FullName}' is not supported.",
-					 nameof(layoutNode))
-		};
-	}
+        _layoutNode?.QueueFree();
+        _layoutNode = BuildLayoutTree(_layout);
+        AddChild(_layoutNode);
+    }
 
-	private Control BuildSplitLayout(IdeSplitNode splitNode)
-	{
-		SplitContainer container = splitNode.Orientation switch
-		{
-			Orientation.Horizontal => new HSplitContainer(),
-			Orientation.Vertical => new VSplitContainer(),
+    private Control BuildLayoutTree(IdeLayoutNode layoutNode)
+    {
+        return layoutNode switch
+        {
+            IdeSplitNode splitNode => BuildSplitLayout(splitNode),
+            IdeTabGroupNode tabGroupNode => BuildTabGroupLayout(tabGroupNode),
+            IdeSceneNode viewNode => BuildSceneLayout(viewNode),
 
-			_ => throw new ArgumentException(
-					 $"The split orientation '{splitNode.Orientation}' is not supported.",
-					 nameof(splitNode))
-		};
+            _ => throw new ArgumentException(
+                     $"The layout node of type '{layoutNode.GetType().FullName}' is not supported.",
+                     nameof(layoutNode))
+        };
+    }
 
-		container.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		container.SizeFlagsVertical = SizeFlags.ExpandFill;
-		container.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		container.AddThemeConstantOverride("separation", DockComponentSeparation);
+    private Control BuildSplitLayout(IdeSplitNode splitNode)
+    {
+        SplitContainer container = splitNode.Orientation switch
+        {
+            Orientation.Horizontal => new HSplitContainer(),
+            Orientation.Vertical => new VSplitContainer(),
 
-		var firstChild = BuildLayoutTree(splitNode.FirstNode);
-		var secondChild = BuildLayoutTree(splitNode.SecondNode);
+            _ => throw new ArgumentException(
+                     $"The split orientation '{splitNode.Orientation}' is not supported.",
+                     nameof(splitNode))
+        };
 
-		container.AddChild(firstChild);
-		container.AddChild(secondChild);
+        container.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        container.SizeFlagsVertical = SizeFlags.ExpandFill;
+        container.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        container.AddThemeConstantOverride("separation", DockComponentSeparation);
 
-		var (firstRatio, secondRatio) = GetStretchRatio(splitNode);
+        var firstChild = BuildLayoutTree(splitNode.FirstNode);
+        var secondChild = BuildLayoutTree(splitNode.SecondNode);
 
-		firstChild.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		firstChild.SizeFlagsVertical = SizeFlags.ExpandFill;
-		secondChild.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		secondChild.SizeFlagsVertical = SizeFlags.ExpandFill;
-		firstChild.SetStretchRatio(firstRatio);
-		secondChild.SetStretchRatio(secondRatio);
+        container.AddChild(firstChild);
+        container.AddChild(secondChild);
 
-		_nodeMap[container] = splitNode;
+        var (firstRatio, secondRatio) = GetStretchRatio(splitNode);
 
-		return container;
-	}
+        firstChild.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        firstChild.SizeFlagsVertical = SizeFlags.ExpandFill;
+        secondChild.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        secondChild.SizeFlagsVertical = SizeFlags.ExpandFill;
+        firstChild.SetStretchRatio(firstRatio);
+        secondChild.SetStretchRatio(secondRatio);
 
-	private (float FirstRatio, float SecondRatio) GetStretchRatio(IdeSplitNode splitNode)
-	{
-		// TODO: Calculate ratio
-		return (1.0f, 1.0f);
-	}
+        _nodeMap[container] = splitNode;
 
-	private Control BuildTabGroupLayout(IdeTabGroupNode tabGroupNode)
-	{
-		throw new NotImplementedException();
-	}
+        return container;
+    }
 
-	private Control BuildSceneLayout(IdeSceneNode sceneNode)
-	{
-		var component = ResourceLoader.Load<PackedScene>("uid://b36lno754a2is").Instantiate<IdeDockComponent>();
-		component.ComponentNode = sceneNode;
-		component.GuiInput += input => OnDockComponentGuiInput(input, sceneNode);
+    private (float FirstRatio, float SecondRatio) GetStretchRatio(IdeSplitNode splitNode)
+    {
+        // TODO: Calculate ratio
+        return (1.0f, 1.0f);
+    }
 
-		_dockOverlay.RegisterDockTarget(component);
-		_nodeMap[component] = sceneNode;
+    private Control BuildTabGroupLayout(IdeTabGroupNode tabGroupNode)
+    {
+        throw new NotImplementedException();
+    }
 
-		return component;
-	}
+    private Control BuildSceneLayout(IdeSceneNode sceneNode)
+    {
+        var component = ResourceLoader.Load<PackedScene>("uid://b36lno754a2is").Instantiate<IdeDockComponent>();
+        component.ComponentNode = sceneNode;
+        component.GuiInput += input => OnDockComponentGuiInput(input, sceneNode);
 
-	private void OnDockComponentGuiInput(InputEvent input, IdeLayoutNode node)
-	{
-		if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left } leftButton)
-		{
-			return;
-		}
+        _dockOverlay.RegisterDockTarget(component);
+        _nodeMap[component] = sceneNode;
 
-		if (leftButton.Pressed)
-		{
-			BeginDrag(node);
-			return;
-		}
+        return component;
+    }
 
-		EndDrag();
-	}
+    private void OnDockComponentGuiInput(InputEvent input, IdeLayoutNode node)
+    {
+        if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left } leftButton)
+        {
+            return;
+        }
 
-	private void BeginDrag(IdeLayoutNode draggedNode)
-	{
-		_dockOverlay.BeginDrag(draggedNode);
-	}
+        if (leftButton.Pressed)
+        {
+            BeginDrag(node);
+            return;
+        }
 
-	private void EndDrag()
-	{
-		if (_dockOverlay.DraggedNode is null || _dockOverlay.CurrentDockPosition is DockPosition.None)
-		{
-			_dockOverlay.EndDrag();
-			return;
-		}
+        EndDrag();
+    }
 
-		switch (_dockOverlay.CurrentDockScope)
-		{
-			case DockScope.Global:
-				DockTarget(_dockOverlay.DraggedNode, _layout, _dockOverlay.CurrentDockPosition);
-				break;
-			case DockScope.Local when _dockOverlay.HoveredTarget is not null:
-				DockTarget(_dockOverlay.DraggedNode, _nodeMap[_dockOverlay.HoveredTarget], _dockOverlay.CurrentDockPosition);
-				break;
-		}
+    private void BeginDrag(IdeLayoutNode draggedNode)
+    {
+        _dockOverlay.BeginDrag(draggedNode);
+    }
 
-		_dockOverlay.EndDrag();
-	}
+    private void EndDrag()
+    {
+        if (_dockOverlay.DraggedNode is null || _dockOverlay.CurrentDockPosition is DockPosition.None)
+        {
+            _dockOverlay.EndDrag();
+            return;
+        }
 
-	private void DockTarget(IdeLayoutNode dragged, IdeLayoutNode target, DockPosition position)
-	{
-		if (ReferenceEquals(_layout, target))
-		{
-			_layout = RemoveNode(target, dragged)!;
-			target = _layout;
-		}
-		else
-		{
-			_layout = RemoveNode(_layout, dragged)!;
-			target = RemoveNode(target, dragged)!;
-		}
-		
-		
-		var replacement = position switch
-		{
-			DockPosition.Left => new IdeSplitNode(Orientation.Horizontal, dragged, target),
-			DockPosition.Right => new IdeSplitNode(Orientation.Horizontal, target, dragged),
-			DockPosition.Top => new IdeSplitNode(Orientation.Vertical, dragged, target),
-			DockPosition.Bottom => new IdeSplitNode(Orientation.Vertical, target, dragged),
+        switch (_dockOverlay.CurrentDockScope)
+        {
+            case DockScope.Global:
+                DockTarget(_dockOverlay.DraggedNode, _layout, _dockOverlay.CurrentDockPosition);
+                break;
+            case DockScope.Local when _dockOverlay.HoveredTarget is not null:
+                DockTarget(
+                    _dockOverlay.DraggedNode,
+                    _nodeMap[_dockOverlay.HoveredTarget],
+                    _dockOverlay.CurrentDockPosition);
+                break;
+        }
 
-			_ => target
-		};
+        _dockOverlay.EndDrag();
+    }
 
-		if (ReferenceEquals(replacement, target))
-		{
-			return;
-		}
+    private void DockTarget(IdeLayoutNode dragged, IdeLayoutNode target, DockPosition position)
+    {
+        if (ReferenceEquals(_layout, target))
+        {
+            _layout = RemoveNode(target, dragged)!;
+            target = _layout;
+        }
+        else
+        {
+            _layout = RemoveNode(_layout, dragged)!;
+            target = RemoveNode(target, dragged)!;
+        }
 
-		_layout = ReplaceNode(_layout, target, replacement);
+        var replacement = position switch
+        {
+            DockPosition.Left => new IdeSplitNode(Orientation.Horizontal, dragged, target),
+            DockPosition.Right => new IdeSplitNode(Orientation.Horizontal, target, dragged),
+            DockPosition.Top => new IdeSplitNode(Orientation.Vertical, dragged, target),
+            DockPosition.Bottom => new IdeSplitNode(Orientation.Vertical, target, dragged),
 
-		RebuildLayoutTree();
-	}
+            _ => target
+        };
 
-	private IdeLayoutNode ReplaceNode(IdeLayoutNode current, IdeLayoutNode target, IdeLayoutNode replacement)
-	{
-		if (ReferenceEquals(_layout, target) || ReferenceEquals(current, target))
-		{
-			return replacement;
-		}
+        if (ReferenceEquals(replacement, target))
+        {
+            return;
+        }
 
-		if (current is IdeSplitNode splitNode)
-		{
-			return splitNode with
-			{
-				FirstNode = ReplaceNode(splitNode.FirstNode, target, replacement),
-				SecondNode = ReplaceNode(splitNode.SecondNode, target, replacement)
-			};
-		}
+        _layout = ReplaceNode(_layout, target, replacement);
 
-		return current;
-	}
+        RebuildLayoutTree();
+    }
 
-	private IdeLayoutNode? RemoveNode(IdeLayoutNode current, IdeLayoutNode target)
-	{
-		if (ReferenceEquals(current, target))
-		{
-			return null;
-		}
+    private IdeLayoutNode ReplaceNode(IdeLayoutNode current, IdeLayoutNode target, IdeLayoutNode replacement)
+    {
+        if (ReferenceEquals(_layout, target) || ReferenceEquals(current, target))
+        {
+            return replacement;
+        }
 
-		if (current is not IdeSplitNode splitNode)
-		{
-			return current;
-		}
+        if (current is IdeSplitNode splitNode)
+        {
+            return splitNode with
+            {
+                FirstNode = ReplaceNode(splitNode.FirstNode, target, replacement),
+                SecondNode = ReplaceNode(splitNode.SecondNode, target, replacement)
+            };
+        }
 
-		var first = RemoveNode(splitNode.FirstNode, target);
-		var second = RemoveNode(splitNode.SecondNode, target);
+        return current;
+    }
 
-		if (first is null)
-		{
-			return second;
-		}
+    private IdeLayoutNode? RemoveNode(IdeLayoutNode current, IdeLayoutNode target)
+    {
+        if (ReferenceEquals(current, target))
+        {
+            return null;
+        }
 
-		if (second is null)
-		{
-			return first;
-		}
+        if (current is not IdeSplitNode splitNode)
+        {
+            return current;
+        }
 
-		return splitNode with
-		{
-			FirstNode = first,
-			SecondNode = second
-		};
-	}
+        var first = RemoveNode(splitNode.FirstNode, target);
+        var second = RemoveNode(splitNode.SecondNode, target);
+
+        if (first is null)
+        {
+            return second;
+        }
+
+        if (second is null)
+        {
+            return first;
+        }
+
+        return splitNode with
+        {
+            FirstNode = first,
+            SecondNode = second
+        };
+    }
 }
