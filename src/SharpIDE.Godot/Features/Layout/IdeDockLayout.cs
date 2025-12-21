@@ -110,7 +110,8 @@ public partial class IdeDockLayout : Control
 
     private Control BuildSceneLayout(IdeSceneNode sceneNode)
     {
-        var component = ResourceLoader.Load<PackedScene>("uid://b36lno754a2is").Instantiate<IdeDockComponent>();
+        var component = ResourceLoader.Load<PackedScene>(ResourceHelper.DockComponentId)
+                                      .Instantiate<IdeDockComponent>();
         component.ComponentNode = sceneNode;
         component.GuiInput += input => OnDockComponentGuiInput(input, sceneNode);
 
