@@ -1,23 +1,22 @@
 using System.Diagnostics;
+
 using Godot;
+
 using Microsoft.Extensions.Logging;
+
 using SharpIDE.Application.Features.Analysis;
 using SharpIDE.Application.Features.Build;
 using SharpIDE.Application.Features.Events;
 using SharpIDE.Application.Features.FilePersistence;
 using SharpIDE.Application.Features.FileWatching;
 using SharpIDE.Application.Features.NavigationHistory;
-using SharpIDE.Application.Features.Run;
 using SharpIDE.Application.Features.SolutionDiscovery;
-using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 using SharpIDE.Godot.Features.BottomPanel;
-using SharpIDE.Godot.Features.CodeEditor;
 using SharpIDE.Godot.Features.CustomControls;
 using SharpIDE.Godot.Features.Layout;
 using SharpIDE.Godot.Features.Run;
 using SharpIDE.Godot.Features.Search;
 using SharpIDE.Godot.Features.Search.SearchAllFiles;
-using SharpIDE.Godot.Features.SolutionExplorer;
 
 namespace SharpIDE.Godot;
 
@@ -32,13 +31,9 @@ public partial class IdeRoot : Control
 	private Button _restoreSlnButton = null!;
 	private SearchWindow _searchWindow = null!;
 	private SearchAllFilesWindow _searchAllFilesWindow = null!;
-	private CodeEditorPanel _codeEditorPanel = null!;
-	private SolutionExplorerPanel _solutionExplorerPanel = null!;
 	private InvertedVSplitContainer _invertedVSplitContainer = null!;
-	private RunPanel _runPanel = null!;
 	private Button _runMenuButton = null!;
 	private Popup _runMenuPopup = null!;
-	private BottomPanelManager _bottomPanelManager = null!;
 
 	private IdeDockLayout _dockLayoutRoot = null!;
 	
@@ -52,8 +47,8 @@ public partial class IdeRoot : Control
 	[Inject] private readonly IdeOpenTabsFileManager _openTabsFileManager = null!;
 	[Inject] private readonly RoslynAnalysis _roslynAnalysis = null!;
 	[Inject] private readonly SharpIdeSolutionModificationService _sharpIdeSolutionModificationService = null!;
-	[Inject] private readonly SharpIdeSolutionAccessor _sharpIdeSolutionAccessor = null!;
 	[Inject] private readonly IdeNavigationHistoryService _navigationHistoryService = null!;
+	[Inject] private readonly SharpIdeSolutionManager _solutionManager = null!;
 	[Inject] private readonly ILogger<IdeRoot> _logger = null!;
 
 	public override void _EnterTree()
@@ -77,15 +72,9 @@ public partial class IdeRoot : Control
 		_restoreSlnButton = GetNode<Button>("%RestoreSlnButton");
 		_runMenuPopup = GetNode<Popup>("%RunMenuPopup");
 		_runMenuButton = GetNode<Button>("%RunMenuButton");
-		_codeEditorPanel = GetNode<CodeEditorPanel>("%CodeEditorPanel");
 		_searchWindow = GetNode<SearchWindow>("%SearchWindow");
 		_searchAllFilesWindow = GetNode<SearchAllFilesWindow>("%SearchAllFilesWindow");
-		 _solutionExplorerPanel = GetNode<SolutionExplorerPanel>("%SolutionExplorerPanel");
-		 _runPanel = GetNode<RunPanel>("%RunPanel");
-		 _invertedVSplitContainer = GetNode<InvertedVSplitContainer>("%InvertedVSplitContainer");
-		_bottomPanelManager = GetNode<BottomPanelManager>("%BottomPanel");
-		
-		_dockLayoutRoot = GetNode<IdeDockLayout>("%DockLayoutRoot");
+		 //_invertedVSplitContainer = GetNode<InvertedVSplitContainer>("%InvertedVSplitContainer");
 		
 		_runMenuButton.Pressed += OnRunMenuButtonPressed;
 		GodotGlobalEvents.Instance.FileSelected.Subscribe(OnSolutionExplorerPanelOnFileSelected);
@@ -94,7 +83,7 @@ public partial class IdeRoot : Control
 		_rebuildSlnButton.Pressed += OnRebuildSlnButtonPressed;
 		_cleanSlnButton.Pressed += OnCleanSlnButtonPressed;
 		_restoreSlnButton.Pressed += OnRestoreSlnButtonPressed;
-		GodotGlobalEvents.Instance.BottomPanelVisibilityChangeRequested.Subscribe(async show => await this.InvokeAsync(() => _invertedVSplitContainer.InvertedSetCollapsed(!show)));
+		//GodotGlobalEvents.Instance.BottomPanelVisibilityChangeRequested.Subscribe(async show => await this.InvokeAsync(() => _invertedVSplitContainer.InvertedSetCollapsed(!show)));
 		GetTree().GetRoot().FocusExited += OnFocusExited;
 		_nodeReadyTcs.SetResult();
 	}
@@ -118,29 +107,37 @@ public partial class IdeRoot : Control
 
 	private async void OnBuildSlnButtonPressed()
 	{
+		await _solutionManager.SolutionReadyTcs.Task;
+		
 		GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Build);
-		await _buildService.MsBuildAsync(_solutionExplorerPanel.SolutionModel.FilePath);
+		await _buildService.MsBuildAsync(_solutionManager.SolutionModel.FilePath);
 	}
 	private async void OnRebuildSlnButtonPressed()
 	{
+		await _solutionManager.SolutionReadyTcs.Task;
+		
 		GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Build);
-		await _buildService.MsBuildAsync(_solutionExplorerPanel.SolutionModel.FilePath, BuildType.Rebuild);
+		await _buildService.MsBuildAsync(_solutionManager.SolutionModel.FilePath, BuildType.Rebuild);
 	}
 	private async void OnCleanSlnButtonPressed()
 	{
+		await _solutionManager.SolutionReadyTcs.Task;
+		
 		GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Build);
-		await _buildService.MsBuildAsync(_solutionExplorerPanel.SolutionModel.FilePath, BuildType.Clean);
+		await _buildService.MsBuildAsync(_solutionManager.SolutionModel.FilePath, BuildType.Clean);
 	}
 	private async void OnRestoreSlnButtonPressed()
 	{
+		await _solutionManager.SolutionReadyTcs.Task;
+		
 		GodotGlobalEvents.Instance.BottomPanelTabExternallySelected.InvokeParallelFireAndForget(BottomPanelType.Build);
-		await _buildService.MsBuildAsync(_solutionExplorerPanel.SolutionModel.FilePath, BuildType.Restore);
+		await _buildService.MsBuildAsync(_solutionManager.SolutionModel.FilePath, BuildType.Restore);
 	}
 
-	private async Task OnSolutionExplorerPanelOnFileSelected(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition)
+	private Task OnSolutionExplorerPanelOnFileSelected(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition)
 	{
-		await _codeEditorPanel.SetSharpIdeFile(file, fileLinePosition);
 		_navigationHistoryService.RecordNavigation(file, fileLinePosition ?? new SharpIdeFileLinePosition(0, 0));
+		return Task.CompletedTask;
 	}
 
 	public void SetSlnFilePath(string path)
@@ -149,25 +146,21 @@ public partial class IdeRoot : Control
 		{
 			GD.Print($"Selected: {path}");
 			var timer = Stopwatch.StartNew();
-			var solutionModel = await VsPersistenceMapper.GetSolutionModel(path); // TODO: Probably refactor into a DI Service
+			var solutionModel = await _solutionManager.LoadSolution(path);
 			timer.Stop();
 			await _nodeReadyTcs.Task;
 			// Do not use injected services until after _nodeReadyTcs - Services aren't injected until _Ready
 			_logger.LogInformation("Solution model fully created in {ElapsedMilliseconds} ms", timer.ElapsedMilliseconds);
-			_sharpIdeSolutionAccessor.SolutionModel = solutionModel;
-			_sharpIdeSolutionAccessor.SolutionReadyTcs.SetResult();
-			_solutionExplorerPanel.SolutionModel = solutionModel;
-			_codeEditorPanel.Solution = solutionModel;
+			//_solutionExplorerPanel.SolutionModel = solutionModel;
+			//_codeEditorPanel.Solution = solutionModel;
 			_searchWindow.Solution = solutionModel;
 			_searchAllFilesWindow.Solution = solutionModel;
 			_fileExternalChangeHandler.SolutionModel = solutionModel;
 			_fileChangedService.SolutionModel = solutionModel;
 			_sharpIdeSolutionModificationService.SolutionModel = solutionModel;
-			_ = Task.GodotRun(_solutionExplorerPanel.BindToSolution);
+			//_ = Task.GodotRun(_solutionExplorerPanel.BindToSolution);
 			_roslynAnalysis.StartLoadingSolutionInWorkspace(solutionModel);
 			_fileWatcher.StartWatching(solutionModel);
-
-			//_dockLayoutRoot.ChangeSolution(solutionModel);
 			
 			var previousTabs = Singletons.AppState.RecentSlns.Single(s => s.FilePath == solutionModel.FilePath).IdeSolutionState.OpenTabs;
 			var filesToOpen = previousTabs

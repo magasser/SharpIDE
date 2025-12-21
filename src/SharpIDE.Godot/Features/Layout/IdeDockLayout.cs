@@ -1,94 +1,47 @@
 using Godot;
 
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
-using SharpIDE.Godot.Features.CodeEditor;
-using SharpIDE.Godot.Features.SolutionExplorer;
 
 namespace SharpIDE.Godot.Features.Layout;
 
 public partial class IdeDockLayout : Control
 {
+	[Export]
+	public int DockComponentSeparation { get; set; } = 0;
+	
+	private readonly Dictionary<Control, IdeLayoutNode> _nodeMap = [];
 	private IdeLayoutNode _layout = null!;
-
-	private SharpIdeSolutionModel? _solution;
 
 	private IdeDockOverlay _dockOverlay = null!;
 
 	private Control? _layoutNode;
-	private IdeLayoutNode? _draggedNode;
-	private readonly Dictionary<Control, IdeLayoutNode> _nodeMap = [];
 
 	/// <inheritdoc />
 	public override void _Ready()
 	{
 		_dockOverlay = GetNode<IdeDockOverlay>("%DockOverlay");
 
+		// TODO: Wrap scenes in dock panel component scene
 		// TODO: Add layout profiles and persist layout
 		_layout = new IdeSplitNode(
 			Orientation.Horizontal,
-			FirstNode: new IdeSceneNode("uid://cy1bb32g7j7dr"),
-			SecondNode: new IdeSplitNode(
-				Orientation.Vertical,
-				FirstNode: new IdeSceneNode("uid://cy1bb32g7j7dr"),
-				SecondNode: new IdeSceneNode("uid://c5dlwgcx3ubyp")));
+			FirstNode: new IdeSceneNode("uid://cy1bb32g7j7dr", "Solution Explorer"),
+			SecondNode: new IdeSceneNode("uid://c5dlwgcx3ubyp", "Code Editor"));
 
-		FocusExited += CancelDrag;
+		FocusExited += _dockOverlay.EndDrag;
 
 		RebuildLayoutTree();
 	}
 
 	/// <inheritdoc />
-	public override void _UnhandledKeyInput(InputEvent @event)
+	public override void _UnhandledKeyInput(InputEvent input)
 	{
-		if (@event is InputEventKey { Keycode: Key.Escape, Pressed: true })
+		if (input is InputEventKey { Keycode: Key.Escape, Pressed: true })
 		{
-			CancelDrag();
+			_dockOverlay.EndDrag();
 		}
 	}
-
-	// TODO: This is currently a workaround. A better way to set the solution should be found.
-	public void ChangeSolution(SharpIdeSolutionModel solution)
-	{
-		_solution = solution;
-
-		CallDeferred(nameof(ChangeSolutionImpl));
-	}
-
-	private void ChangeSolutionImpl()
-	{
-		//if (_solution is null)
-		{
-			return;
-		}
-
-		foreach (var editor in GetAllChildren<CodeEditorPanel>(this))
-		{
-			editor.Solution = _solution;
-		}
-
-		foreach (var explorer in GetAllChildren<SolutionExplorerPanel>(this))
-		{
-			explorer.SolutionModel = _solution;
-			_ = Task.GodotRun(explorer.BindToSolution);
-		}
-	}
-
-	private IEnumerable<TNode> GetAllChildren<TNode>(Node node) where TNode : Node
-	{
-		return node.GetChildren()
-				   .SelectMany(child =>
-				   {
-					   var children = GetAllChildren<TNode>(child);
-
-					   if (child is TNode nodeChild)
-					   {
-						   children = children.Prepend(nodeChild);
-					   }
-
-					   return children;
-				   });
-	}
-
+	
 	private void RebuildLayoutTree()
 	{
 		_dockOverlay.ClearDockTargets();
@@ -96,8 +49,6 @@ public partial class IdeDockLayout : Control
 		_layoutNode?.QueueFree();
 		_layoutNode = BuildLayoutTree(_layout);
 		AddChild(_layoutNode);
-
-		ChangeSolution(_solution!);
 	}
 
 	private Control BuildLayoutTree(IdeLayoutNode layoutNode)
@@ -129,6 +80,7 @@ public partial class IdeDockLayout : Control
 		container.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		container.SizeFlagsVertical = SizeFlags.ExpandFill;
 		container.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		container.AddThemeConstantOverride("separation", DockComponentSeparation);
 
 		var firstChild = BuildLayoutTree(splitNode.FirstNode);
 		var secondChild = BuildLayoutTree(splitNode.SecondNode);
@@ -162,17 +114,18 @@ public partial class IdeDockLayout : Control
 
 	private Control BuildSceneLayout(IdeSceneNode sceneNode)
 	{
-		var sceneResource = ResourceLoader.Load<PackedScene>(sceneNode.ResourceUid);
-		var scene = sceneResource.Instantiate<Control>();
-		scene.GuiInput += input => OnSceneGuiInput(input, sceneNode);
 
-		_dockOverlay.RegisterDockTarget(scene);
-		_nodeMap[scene] = sceneNode;
+		var component = ResourceLoader.Load<PackedScene>("uid://b36lno754a2is").Instantiate<IdeDockComponent>();
+		component.ComponentNode = sceneNode;
+		component.GuiInput += input => OnDockComponentGuiInput(input, sceneNode);
 
-		return scene;
+		_dockOverlay.RegisterDockTarget(component);
+		_nodeMap[component] = sceneNode;
+
+		return component;
 	}
 
-	private void OnSceneGuiInput(InputEvent input, IdeLayoutNode node)
+	private void OnDockComponentGuiInput(InputEvent input, IdeLayoutNode node)
 	{
 		if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left } leftButton)
 		{
@@ -190,47 +143,34 @@ public partial class IdeDockLayout : Control
 
 	private void BeginDrag(IdeLayoutNode draggedNode)
 	{
-		GD.Print(nameof(BeginDrag));
-		
-		_draggedNode = draggedNode;
-		_dockOverlay.Visible = true;
+		_dockOverlay.BeginDrag(draggedNode);
 	}
 
 	private void EndDrag()
 	{
-		GD.Print(nameof(EndDrag));
-		
-		if (_draggedNode is null || _dockOverlay.CurrentDockPosition is DockPosition.None)
+		if (_dockOverlay.DraggedNode is null || _dockOverlay.CurrentDockPosition is DockPosition.None)
 		{
-			CancelDrag();
+			_dockOverlay.EndDrag();
 			return;
 		}
 
 		switch (_dockOverlay.CurrentDockScope)
 		{
 			case DockScope.Global:
-				DockTarget(_draggedNode, _layout, _dockOverlay.CurrentDockPosition);
+				DockTarget(_dockOverlay.DraggedNode, _layout, _dockOverlay.CurrentDockPosition);
 				break;
 			case DockScope.Local when _dockOverlay.HoveredTarget is not null:
-				DockTarget(_draggedNode, _nodeMap[_dockOverlay.HoveredTarget], _dockOverlay.CurrentDockPosition);
+				DockTarget(_dockOverlay.DraggedNode, _nodeMap[_dockOverlay.HoveredTarget], _dockOverlay.CurrentDockPosition);
 				break;
 		}
 
-		CancelDrag();
-	}
-
-	private void CancelDrag()
-	{
-		GD.Print(nameof(CancelDrag));
-		
-		_draggedNode = null;
-		_dockOverlay.Visible = false;
+		_dockOverlay.EndDrag();
 	}
 
 	private IdeLayoutNode ReplaceNode(IdeLayoutNode current, IdeLayoutNode target, IdeLayoutNode replacement)
 	{
 		// TODO: FIX
-		if (ReferenceEquals(_layout, target) || ReferenceEquals(current, target))
+		if (ReferenceEquals(current, target))
 		{
 			return replacement;
 		}
@@ -244,7 +184,7 @@ public partial class IdeDockLayout : Control
 			};
 		}
 
-		return current;
+		return replacement;
 	}
 
 	private IdeLayoutNode? RemoveNode(IdeLayoutNode current, IdeLayoutNode target)
@@ -281,6 +221,9 @@ public partial class IdeDockLayout : Control
 
 	private void DockTarget(IdeLayoutNode dragged, IdeLayoutNode target, DockPosition position)
 	{
+		_layout = RemoveNode(_layout, dragged)!;
+		target = RemoveNode(target, dragged)!;
+		
 		var replacement = position switch
 		{
 			DockPosition.Left => new IdeSplitNode(Orientation.Horizontal, dragged, target),
@@ -296,8 +239,8 @@ public partial class IdeDockLayout : Control
 			return;
 		}
 
-		_layout = ReplaceNode(RemoveNode(_layout, dragged)!, target, replacement);
-		
+		_layout = ReplaceNode(_layout, target, replacement);
+
 		RebuildLayoutTree();
 	}
 }

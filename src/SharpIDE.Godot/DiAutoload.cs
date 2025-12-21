@@ -22,7 +22,7 @@ public partial class DiAutoload : Node
         var services = new ServiceCollection();
 
         services.AddApplication();
-        services.AddScoped<SharpIdeSolutionAccessor>();
+        services.AddScoped<SharpIdeSolutionManager>();
         services.AddScoped<ActivityMonitor>();
 
         services.AddHttpClient();
@@ -83,7 +83,7 @@ public partial class DiAutoload : Node
                     GetTree().Quit();
                     return;
                 }
-
+                
                 field.SetValue(target, service);
             }
         }

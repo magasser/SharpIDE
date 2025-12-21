@@ -30,12 +30,13 @@ public record IdeSplitNode(
     IdeLayoutNode SecondNode,
     float Ratio = 0.5f) : IdeLayoutNode;
 
-public record IdeSceneNode(string ResourceUid) : IdeLayoutNode;
+public record IdeSceneNode(string ResourceUid, string Name) : IdeLayoutNode;
 
 public record IdeTabGroupNode(
     string ResourceUid,
+    string Name,
     List<IdeDocumentTab> DocumentTabs,
-    int ActiveTabIndex) : IdeSceneNode(ResourceUid);
+    int ActiveTabIndex) : IdeSceneNode(ResourceUid, Name);
 
 public record IdeDocumentTab(
     string TabId,

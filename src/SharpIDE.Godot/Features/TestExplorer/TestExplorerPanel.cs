@@ -7,7 +7,7 @@ namespace SharpIDE.Godot.Features.TestExplorer;
 
 public partial class TestExplorerPanel : Control
 {
-    [Inject] private readonly SharpIdeSolutionAccessor _solutionAccessor = null!;
+    [Inject] private readonly SharpIdeSolutionManager _solutionManager = null!;
     [Inject] private readonly TestRunnerService _testRunnerService = null!;
     [Inject] private readonly BuildService _buildService = null!;
     
@@ -40,8 +40,8 @@ public partial class TestExplorerPanel : Control
 
     private async Task DiscoverTestNodesForSolution(bool withBuild)
     {
-        await _solutionAccessor.SolutionReadyTcs.Task;
-        var solution = _solutionAccessor.SolutionModel!;
+        await _solutionManager.SolutionReadyTcs.Task;
+        var solution = _solutionManager.SolutionModel!;
         if (withBuild)
         {
             await _buildService.MsBuildAsync(solution.FilePath);
@@ -68,8 +68,8 @@ public partial class TestExplorerPanel : Control
     {
         _ = Task.GodotRun(async () =>
         {
-            await _solutionAccessor.SolutionReadyTcs.Task;
-            var solution = _solutionAccessor.SolutionModel!;
+            await _solutionManager.SolutionReadyTcs.Task;
+            var solution = _solutionManager.SolutionModel!;
             await _buildService.MsBuildAsync(solution.FilePath);
             await this.InvokeAsync(() => _testNodesVBoxContainer.QueueFreeChildren());
             _testNodeEntryNodes.Clear();

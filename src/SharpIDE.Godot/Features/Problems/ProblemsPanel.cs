@@ -17,10 +17,8 @@ public partial class ProblemsPanel : Control
     public Texture2D ErrorIcon { get; set; } = null!;
     [Export]
     public Texture2D CsprojIcon { get; set; } = null!;
-
-    private SharpIdeSolutionModel? _solution;
     
-    [Inject] private readonly SharpIdeSolutionAccessor _sharpIdeSolutionAccessor = null!;
+    [Inject] private readonly SharpIdeSolutionManager _sharpIdeSolutionManager = null!;
     
 	private Tree _tree = null!;
     private TreeItem _rootItem = null!;
@@ -40,9 +38,8 @@ public partial class ProblemsPanel : Control
 
     private async Task AsyncReady()
     {
-        await _sharpIdeSolutionAccessor.SolutionReadyTcs.Task;
-        _solution = _sharpIdeSolutionAccessor.SolutionModel;
-        _projects.AddRange(_solution!.AllProjects);
+        await _sharpIdeSolutionManager.SolutionReadyTcs.Task;
+        _projects.AddRange(_sharpIdeSolutionManager.SolutionModel.AllProjects);
     }
 
     public void BindToTree(ObservableHashSet<SharpIdeProjectModel> list)
@@ -203,7 +200,7 @@ public partial class ProblemsPanel : Control
     
     private void OpenDocumentContainingDiagnostic(SharpIdeDiagnostic diagnostic)
     {
-        var file = _solution!.AllFiles[diagnostic.FilePath];
+        var file = _sharpIdeSolutionManager.SolutionModel.AllFiles[diagnostic.FilePath];
         var linePosition = new SharpIdeFileLinePosition(diagnostic.Span.Start.Line, diagnostic.Span.Start.Character);
         GodotGlobalEvents.Instance.FileExternallySelected.InvokeParallelFireAndForget(file, linePosition);
     }
