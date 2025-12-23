@@ -11,6 +11,8 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
 script = ExtResource("1_4ivyu")
+ToolMinimumSize = Vector2(40, 40)
+PreviewColor = Color(0, 0.7268333, 0.89, 0.6901961)
 
 [node name="Margins" type="MarginContainer" parent="."]
 layout_mode = 1

@@ -9,19 +9,21 @@ public partial class IdeMainLayout : Control
 	private readonly Dictionary<ToolAnchor, ToolArea> _toolAreaMap = [];
 	private readonly Dictionary<ToolAnchor, Control> _sidebarToolsMap = [];
 	private readonly Dictionary<ToolAnchor, ButtonGroup> _toolButtonGroupMap = [];
+	private readonly Dictionary<IdeTool, ToolButton> _toolButtonMap = [];
 
 	private Dictionary<IdeTool, IdeToolInfo> _toolMap = [];
-	private Dictionary<IdeTool, ToolButton> _toolButtonMap = [];
 
 	private Sidebar _leftSidebar = null!;
 	private Sidebar _rightSidebar = null!;
 	private Control _bottomArea = null!;
+	private ToolDragOverlay _toolDragOverlay = null!;
 
 	public override void _Ready()
 	{
 		_leftSidebar = GetNode<Sidebar>("%LeftSidebar");
 		_rightSidebar = GetNode<Sidebar>("%RightSidebar");
 		_bottomArea = GetNode<Control>("%BottomArea");
+		_toolDragOverlay = GetNode<ToolDragOverlay>("%ToolDragOverlay");
 		
 		_toolAreaMap[ToolAnchor.LeftTop] = GetNode<ToolArea>("%LeftTopToolArea");
 		_toolAreaMap[ToolAnchor.RightTop] = GetNode<ToolArea>("%RightTopToolArea");
@@ -33,11 +35,15 @@ public partial class IdeMainLayout : Control
 		_sidebarToolsMap[ToolAnchor.BottomLeft] = _leftSidebar.BottomTools;
 		_sidebarToolsMap[ToolAnchor.BottomRight] = _rightSidebar.BottomTools;
 
-		_toolButtonGroupMap[ToolAnchor.LeftTop] = new ButtonGroup { AllowUnpress = true };
-		_toolButtonGroupMap[ToolAnchor.RightTop] = new ButtonGroup { AllowUnpress = true };
-		_toolButtonGroupMap[ToolAnchor.BottomLeft] = new ButtonGroup { AllowUnpress = true };
-		_toolButtonGroupMap[ToolAnchor.BottomRight] = new ButtonGroup { AllowUnpress = true };
-		
+		_toolButtonGroupMap[ToolAnchor.LeftTop] = new ButtonGroup
+			{ ResourceName = $"{ToolAnchor.LeftTop}", AllowUnpress = true };
+		_toolButtonGroupMap[ToolAnchor.RightTop] = new ButtonGroup
+			{ ResourceName = $"{ToolAnchor.RightTop}", AllowUnpress = true };
+		_toolButtonGroupMap[ToolAnchor.BottomLeft] = new ButtonGroup
+			{ ResourceName = $"{ToolAnchor.BottomLeft}", AllowUnpress = true };
+		_toolButtonGroupMap[ToolAnchor.BottomRight] = new ButtonGroup
+			{ ResourceName = $"{ToolAnchor.BottomRight}", AllowUnpress = true };
+
 		GodotGlobalEvents.Instance.IdeToolExternallySelected.Subscribe(tool =>
 		{
 			CallDeferred(
@@ -45,6 +51,8 @@ public partial class IdeMainLayout : Control
 				Variant.From(tool));
 			return Task.CompletedTask;
 		});
+
+		_toolDragOverlay.ToolDropped += OnToolDropped;
 	}
 
 	private void OnIdeToolExternallySelected(IdeTool tool)
@@ -61,21 +69,51 @@ public partial class IdeMainLayout : Control
 	}
 
 	/// <inheritdoc />
-	public override Variant _GetDragData(Vector2 atPosition)
+	public override void _Notification(int what)
 	{
-		return default;
+		switch ((long)what)
+		{
+			case NotificationDragBegin:
+				_leftSidebar.Visible = true;
+				_rightSidebar.Visible = true;
+				_toolDragOverlay.Visible = true;
+				break;
+			case NotificationDragEnd:
+				_toolDragOverlay.Visible = false;
+				UpdateSidebarVisibility();
+				break;
+		}
 	}
 
-	/// <inheritdoc />
-	public override bool _CanDropData(Vector2 atPosition, Variant data)
+	private void OnToolDropped(object? _, ToolDropData dropData)
 	{
-		return false;
-	}
+		var toolInfo = _toolMap[dropData.Tool];
+		var toolButton = _toolButtonMap[dropData.Tool];
+		var tools = _sidebarToolsMap[dropData.Anchor];
+		var buttonGroup = _toolButtonGroupMap[dropData.Anchor];
+		var oldToolArea = _toolAreaMap[toolInfo.Anchor];
+		var newToolArea = _toolAreaMap[dropData.Anchor];
 
-	/// <inheritdoc />
-	public override void _DropData(Vector2 atPosition, Variant data)
-	{
-		
+		if (toolButton.GetParent() is { } buttonParent)
+		{
+			buttonParent.RemoveChild(toolButton);
+		}
+
+		if (oldToolArea.ActiveTool?.Tool == dropData.Tool)
+		{
+			oldToolArea.SetActiveTool(null);
+		}
+
+		toolInfo.Anchor = dropData.Anchor;
+
+		toolButton.ButtonGroup = buttonGroup;
+		tools.AddChild(toolButton);
+		tools.MoveChild(toolButton, dropData.Index);
+
+		if (toolButton.ButtonPressed)
+		{
+			OnIdeToolExternallySelected(toolInfo.Tool);
+		}
 	}
 
 	public void InitializeLayout(IReadOnlyList<IdeToolInfo> toolInfos)
@@ -109,22 +147,17 @@ public partial class IdeMainLayout : Control
 	private void UpdateSidebarVisibility()
 	{
 		_leftSidebar.Visible =
-			_toolMap.Values.Any(toolInfo => toolInfo.Anchor.IsLeft() && toolInfo is
-			{
-				IsPinned: true, IsVisible: true
-			});
+			_toolMap.Values.Any(toolInfo => toolInfo.Anchor.IsLeft() && toolInfo.IsPinned);
 
 		_rightSidebar.Visible =
-			_toolMap.Values.Any(toolInfo => toolInfo.Anchor.IsLeft() && toolInfo is
-			{
-				IsPinned: true, IsVisible: true
-			});
+			_toolMap.Values.Any(toolInfo => toolInfo.Anchor.IsRight() && toolInfo.IsPinned);
 	}
 
 	private ToolButton CreateToolButton(IdeToolInfo toolInfo)
 	{
 		var toolButton = ResourceLoader.Load<PackedScene>("uid://gcpcsulb43in").Instantiate<ToolButton>();
-		
+
+		toolButton.Tool = toolInfo.Tool;
 		toolButton.SetButtonIcon(toolInfo.Icon);
 		toolButton.Toggled += toggledOn => ToggleTool(toolInfo.Tool,  toggledOn);
 		toolButton.ButtonGroup = _toolButtonGroupMap[toolInfo.Anchor];

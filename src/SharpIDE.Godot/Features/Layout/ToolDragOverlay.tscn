@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://f1hvt1gn1adf"]
 
-[ext_resource type="Script" uid="uid://dc57hptoukgk1" path="res://Features/Layout/ToolDockOverlay.cs" id="1_s7p4m"]
+[ext_resource type="Script" uid="uid://dc57hptoukgk1" path="res://Features/Layout/ToolDragOverlay.cs" id="1_cwqxu"]
 
 [node name="ToolDockOverlay" type="Control"]
 layout_mode = 3
@@ -10,4 +10,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("1_s7p4m")
+script = ExtResource("1_cwqxu")

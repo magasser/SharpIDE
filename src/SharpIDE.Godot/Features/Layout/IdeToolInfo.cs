@@ -11,8 +11,17 @@ public enum ToolAnchor
     BottomRight = 4
 }
 
-public record IdeToolInfo(IdeTool Tool, ToolAnchor Anchor, bool IsPinned, bool IsVisible, Control Control, Texture2D Icon)
+public record IdeToolInfo(
+    IdeTool Tool,
+    ToolAnchor Anchor,
+    bool IsPinned,
+    bool IsVisible,
+    Control Control,
+    Texture2D Icon)
 {
+    public ToolAnchor Anchor { get; set; } = Anchor;
+    
     public bool IsPinned { get; set; } = IsPinned;
+
     public bool IsVisible { get; set; } = IsVisible;
 }
