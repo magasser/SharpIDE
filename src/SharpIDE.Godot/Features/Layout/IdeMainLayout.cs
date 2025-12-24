@@ -116,9 +116,9 @@ public partial class IdeMainLayout : Control
 
 			if (toolState.IsActive)
 			{
-				var instance = _toolManager.GetInstance(toolState.ToolId);
+				var toolControl = _toolManager.GetControl<Control>(toolState.ToolId);
 
-				anchorState.ToolArea.ShowTool(instance.Control);
+				anchorState.ToolArea.ShowTool(toolControl);
 			}
 		}
 
@@ -172,9 +172,9 @@ public partial class IdeMainLayout : Control
 			buttonParent.RemoveChild(toolButton);
 		}
 
-		var instance = _toolManager.GetInstance(toolId);
+		var toolControl = _toolManager.GetControl<Control>(toolId);
 
-		if (ReferenceEquals(originAnchorState.ToolArea.CurrentTool, instance.Control))
+		if (ReferenceEquals(originAnchorState.ToolArea.CurrentTool, toolControl))
 		{
 			originAnchorState.ToolArea.HideTool();
 		}
@@ -218,11 +218,11 @@ public partial class IdeMainLayout : Control
 	{
 		var toolState = _toolStateMap[toolId];
 		var toolArea = _anchorStateMap[toolState.Anchor].ToolArea;
-		var instance = _toolManager.GetInstance(toolId);
+		var toolControl = _toolManager.GetControl<Control>(toolId);
 
 		if (toolState.IsActive)
 		{
-			toolArea.ShowTool(instance.Control);
+			toolArea.ShowTool(toolControl);
 		}
 		else
 		{

@@ -19,4 +19,14 @@ public sealed class SharpIdeToolManager
 
         return instance;
     }
+
+    public TNode GetControl<TNode>(IdeToolId id) where TNode : Control
+    {
+        return (TNode)GetInstance(id).Control;
+    }
+
+    public Texture2D GetIcon(IdeToolId id)
+    {
+        return GetInstance(id).Icon;
+    }
 }

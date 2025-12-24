@@ -17,13 +17,12 @@ public partial class CodeEditorPanel : MarginContainer
 {
 	[Export]
 	public Texture2D CsFileTexture { get; set; } = null!;
+	public SharpIdeSolutionModel Solution { get; set; } = null!;
 	private PackedScene _sharpIdeCodeEditScene = GD.Load<PackedScene>("res://Features/CodeEditor/SharpIdeCodeEdit.tscn");
 	private TabContainer _tabContainer = null!;
 	private ConcurrentDictionary<SharpIdeProjectModel, ExecutionStopInfo> _debuggerExecutionStopInfoByProject = [];
 	
 	[Inject] private readonly RunService _runService = null!;
-	[Inject] private readonly SharpIdeSolutionManager _solutionManager = null!;
-	
 	public override void _Ready()
 	{
 		_tabContainer = GetNode<TabContainer>("TabContainer");
@@ -34,7 +33,6 @@ public partial class CodeEditorPanel : MarginContainer
 		tabBar.TabClosePressed += OnTabClosePressed;
 		GlobalEvents.Instance.DebuggerExecutionStopped.Subscribe(OnDebuggerExecutionStopped);
 		GlobalEvents.Instance.ProjectStoppedDebugging.Subscribe(OnProjectStoppedDebugging);
-		GodotGlobalEvents.Instance.FileSelected.Subscribe(SetSharpIdeFile);
 	}
 
 	public override void _GuiInput(InputEvent @event)
@@ -71,7 +69,7 @@ public partial class CodeEditorPanel : MarginContainer
 	public override void _ExitTree()
 	{
 		var selectedTabIndex = _tabContainer.CurrentTab;
-		var thisSolution = Singletons.AppState.RecentSlns.Single(s => s.FilePath == _solutionManager.SolutionModel.FilePath);
+		var thisSolution = Singletons.AppState.RecentSlns.Single(s => s.FilePath == Solution.FilePath);
 		thisSolution.IdeSolutionState.OpenTabs = _tabContainer.GetChildren().OfType<SharpIdeCodeEdit>()
 			.Select((t, index) => new OpenTab
 			{
@@ -126,7 +124,7 @@ public partial class CodeEditorPanel : MarginContainer
 		tab.QueueFree();
 	}
 
-	private async Task SetSharpIdeFile(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition)
+	public async Task SetSharpIdeFile(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 		var existingTab = await this.InvokeAsync(() => _tabContainer.GetChildren().OfType<SharpIdeCodeEdit>().FirstOrDefault(t => t.SharpIdeFile == file));
@@ -141,7 +139,7 @@ public partial class CodeEditorPanel : MarginContainer
 			return;
 		}
 		var newTab = _sharpIdeCodeEditScene.Instantiate<SharpIdeCodeEdit>();
-		newTab.Solution = _solutionManager.SolutionModel;
+		newTab.Solution = Solution;
 		await this.InvokeAsync(() =>
 		{
 			_tabContainer.AddChild(newTab);
@@ -169,11 +167,13 @@ public partial class CodeEditorPanel : MarginContainer
 	private static readonly Color ExecutingLineColor = new Color("665001");
 	private async Task OnDebuggerExecutionStopped(ExecutionStopInfo executionStopInfo)
 	{
+		Guard.Against.Null(Solution, nameof(Solution));
+		
 		var currentSharpIdeFile = await this.InvokeAsync<SharpIdeFile>(() => _tabContainer.GetChild<SharpIdeCodeEdit>(_tabContainer.CurrentTab).SharpIdeFile);
 		
 		if (executionStopInfo.FilePath != currentSharpIdeFile?.Path)
 		{
-			var file = _solutionManager.SolutionModel.AllFiles[executionStopInfo.FilePath];
+			var file = Solution.AllFiles[executionStopInfo.FilePath];
 			await GodotGlobalEvents.Instance.FileExternallySelected.InvokeParallelAsync(file, null).ConfigureAwait(false);
 		}
 		var lineInt = executionStopInfo.Line - 1; // Debugging is 1-indexed, Godot is 0-indexed

@@ -23,7 +23,7 @@ public partial class DiAutoload : Node
         var services = new ServiceCollection();
 
         services.AddApplication();
-        services.AddScoped<SharpIdeSolutionManager>();
+        services.AddScoped<SharpIdeSolutionAccessor>();
         services.AddScoped<SharpIdeToolManager>();
         services.AddScoped<ActivityMonitor>();
 

@@ -30,7 +30,7 @@ public partial class NugetPanel : Control
 	private SharpIdeSolutionModel? _solution;
 	
 	[Inject] private readonly NugetClientService _nugetClientService = null!;
-	[Inject] private readonly SharpIdeSolutionManager _sharpIdeSolutionManager = null!;
+	[Inject] private readonly SharpIdeSolutionAccessor _sharpIdeSolutionAccessor = null!;
 	[Inject] private readonly ActivityMonitor _activityMonitor = null!;
 	
 	private readonly PackedScene _packageEntryScene = ResourceLoader.Load<PackedScene>("uid://cqc2xlt81ju8s");
@@ -70,8 +70,8 @@ public partial class NugetPanel : Control
 
 	private async Task _AsyncReady()
 	{
-		await _sharpIdeSolutionManager.SolutionReadyTcs.Task;
-		_solution = _sharpIdeSolutionManager.SolutionModel;
+		await _sharpIdeSolutionAccessor.SolutionReadyTcs.Task;
+		_solution = _sharpIdeSolutionAccessor.SolutionModel;
 		_projects = [null!, .._solution!.AllProjects.OrderBy(s => s.Name)]; // So that index 0 is solution // Probably should use Item Metadata instead of this
 		await this.InvokeAsync(() =>
 		{

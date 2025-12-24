@@ -1,13 +1,11 @@
 using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
-
 using Ardalis.GuardClauses;
 using Godot;
 using ObservableCollections;
 using R3;
 using SharpIDE.Application;
 using SharpIDE.Application.Features.Analysis;
-using SharpIDE.Application.Features.Events;
+using SharpIDE.Application.Features.NavigationHistory;
 using SharpIDE.Application.Features.SolutionDiscovery;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
 using SharpIDE.Godot.Features.Common;
@@ -29,6 +27,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 	[Export]
 	public Texture2D SlnIcon { get; set; } = null!;
 	
+	public SharpIdeSolutionModel SolutionModel { get; set; } = null!;
 	private PanelContainer _panelContainer = null!;
 	private Tree _tree = null!;
 	private TreeItem _rootItem = null!;
@@ -36,9 +35,6 @@ public partial class SolutionExplorerPanel : MarginContainer
 	private enum ClipboardOperation { Cut, Copy }
 
 	private (List<IFileOrFolder>, ClipboardOperation)? _itemsOnClipboard;
-	
-	[Inject] private readonly SharpIdeSolutionManager _solutionManager = null!;
-	
 	public override void _Ready()
 	{
 		_panelContainer = GetNode<PanelContainer>("PanelContainer");
@@ -47,14 +43,6 @@ public partial class SolutionExplorerPanel : MarginContainer
 		// Remove the tree from the scene tree for now, we will add it back when we bind to a solution
 		_panelContainer.RemoveChild(_tree);
 		GodotGlobalEvents.Instance.FileExternallySelected.Subscribe(OnFileExternallySelected);
-
-		_ = Task.GodotRun(_AsyncReady);
-	}
-
-	private async Task _AsyncReady()
-	{
-		await _solutionManager.SolutionReadyTcs.Task;
-		await BindToSolution(_solutionManager.SolutionModel);
 	}
 
 	public override void _UnhandledKeyInput(InputEvent @event)
@@ -142,6 +130,7 @@ public partial class SolutionExplorerPanel : MarginContainer
 		return null;
 	}
 
+	public async Task BindToSolution() => await BindToSolution(SolutionModel);
 	[RequiresGodotUiThread]
 	public async Task BindToSolution(SharpIdeSolutionModel solution)
 	{
