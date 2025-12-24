@@ -78,6 +78,24 @@ public partial class IdeMainLayout : Control
 		}
 	}
 
+	private void OnIdeToolExternallyActivated(IdeToolId toolId)
+	{
+		if (!_toolStateMap.TryGetValue(toolId, out var toolState))
+		{
+			GD.PrintErr($"Externally activated tool '{toolId}' is not part of layout.");
+			return;
+		}
+
+		var anchor = toolState.Anchor;
+		DeactivateTools(anchor);
+		ActivateTool(toolId);
+	}
+
+	private void OnToolMoveRequested(object? _, ToolMoveData moveData)
+	{
+		MoveTool(moveData.ToolId, moveData.Anchor, moveData.Index);
+	}
+
 	private void InitializeLayout(IdeLayoutState layoutState)
 	{
 		_toolStateMap = layoutState.SidebarTools.Values.SelectMany(x => x).ToDictionary(state => state.ToolId);
@@ -176,48 +194,6 @@ public partial class IdeMainLayout : Control
 		_toolStateMap[toolId].IsActive = isActive;
 	}
 
-	private void ApplyToolVisibility(IdeToolId toolId)
-	{
-		var toolState = _toolStateMap[toolId];
-		var toolArea = _anchorStateMap[toolState.Anchor].ToolArea;
-		var instance = _toolManager.GetInstance(toolId);
-
-		if (toolState.IsActive)
-		{
-			toolArea.ShowTool(instance.Control);
-		}
-		else
-		{
-			toolArea.HideTool();
-		}
-
-		ApplyBottomAreaVisibility();
-	}
-
-	private void OnIdeToolExternallyActivated(IdeToolId toolId)
-	{
-		if (!_toolStateMap.TryGetValue(toolId, out var toolState))
-		{
-			GD.PrintErr($"Externally activated tool '{toolId}' is not part of layout.");
-			return;
-		}
-
-		var anchor = toolState.Anchor;
-		DeactivateTools(anchor);
-		ActivateTool(toolId);
-	}
-
-	private void OnToolMoveRequested(object? _, ToolMoveData moveData)
-	{
-		MoveTool(moveData.ToolId, moveData.Anchor, moveData.Index);
-	}
-
-	private void ApplySidebarVisibility()
-	{
-		_leftSidebar.Visible = _toolStateMap.Values.Any(toolState => toolState.Anchor.IsLeft());
-		_rightSidebar.Visible = _toolStateMap.Values.Any(toolState => toolState.Anchor.IsRight());
-	}
-
 	private ToolButton CreateToolButton(IdeToolState toolState)
 	{
 		var toolButton = Scenes.ToolButton.Instantiate<ToolButton>();
@@ -236,6 +212,30 @@ public partial class IdeMainLayout : Control
 		toolButton.ButtonPressed = toolState.IsActive;
 
 		return toolButton;
+	}
+
+	private void ApplyToolVisibility(IdeToolId toolId)
+	{
+		var toolState = _toolStateMap[toolId];
+		var toolArea = _anchorStateMap[toolState.Anchor].ToolArea;
+		var instance = _toolManager.GetInstance(toolId);
+
+		if (toolState.IsActive)
+		{
+			toolArea.ShowTool(instance.Control);
+		}
+		else
+		{
+			toolArea.HideTool();
+		}
+
+		ApplyBottomAreaVisibility();
+	}
+
+	private void ApplySidebarVisibility()
+	{
+		_leftSidebar.Visible = _toolStateMap.Values.Any(toolState => toolState.Anchor.IsLeft());
+		_rightSidebar.Visible = _toolStateMap.Values.Any(toolState => toolState.Anchor.IsRight());
 	}
 
 	private void ApplyBottomAreaVisibility()

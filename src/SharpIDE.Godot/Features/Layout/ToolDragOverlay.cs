@@ -35,7 +35,6 @@ public partial class ToolDragOverlay : Control
 
 	public override void _Ready()
 	{
-		// TODO: Sidebar visibility not working
 		_dropZoneAnchorMap[LeftTopZone] = ToolAnchor.LeftTop;
 		_dropZoneAnchorMap[RightTopZone] = ToolAnchor.RightTop;
 		_dropZoneAnchorMap[BottomLeftZone] = ToolAnchor.BottomLeft;
@@ -86,6 +85,25 @@ public partial class ToolDragOverlay : Control
 		}
 	}
 
+	private void OnVisibilityChanged()
+	{
+		if (!Visible)
+		{
+			HideToolPreviews();
+			HideDropZoneHighlights();
+		}
+	}
+
+	private void RaiseToolDropped(IdeToolId toolId, ToolAnchor anchor, int index)
+	{
+		ToolMoveRequested?.Invoke(
+			sender: this,
+			new ToolMoveData(
+				toolId,
+				anchor,
+				index));
+	}
+
 	private bool TryGetAnchorAndZoneAtPosition(
 		Vector2 position,
 		[NotNullWhen(true)] out ToolAnchor? anchor,
@@ -107,25 +125,6 @@ public partial class ToolDragOverlay : Control
 		return false;
 	}
 
-	private void OnVisibilityChanged()
-	{
-		if (!Visible)
-		{
-			HideToolPreviews();
-			HideDropZoneHighlights();
-		}
-	}
-
-	private void RaiseToolDropped(IdeToolId toolId, ToolAnchor anchor, int index)
-	{
-		ToolMoveRequested?.Invoke(
-			sender: this,
-			new ToolMoveData(
-				toolId,
-				anchor,
-				index));
-	}
-
 	private void ShowGhostPreview(ToolAnchor anchor, Vector2 mousePosition)
 	{
 		var sidebar = _sidebarMap[anchor];
@@ -138,18 +137,6 @@ public partial class ToolDragOverlay : Control
 		}
 
 		tools.MoveChild(sidebar.ToolPreview, previewIndex);
-	}
-
-	private Container GetSidebarTools(ToolAnchor anchor)
-	{
-		var sidebar = _sidebarMap[anchor];
-
-		return anchor switch
-		{
-			ToolAnchor.LeftTop or ToolAnchor.RightTop => sidebar.TopTools,
-			ToolAnchor.BottomLeft or ToolAnchor.BottomRight => sidebar.BottomTools,
-			_ => throw new ArgumentException($"No tools to show preview in for anchor '{anchor}'.", nameof(anchor))
-		};
 	}
 
 	private void HideToolPreviews()
@@ -173,7 +160,18 @@ public partial class ToolDragOverlay : Control
 		}
 	}
 
-	// TODO: Check why ths does not calculate correct index
+	private Container GetSidebarTools(ToolAnchor anchor)
+	{
+		var sidebar = _sidebarMap[anchor];
+
+		return anchor switch
+		{
+			ToolAnchor.LeftTop or ToolAnchor.RightTop => sidebar.TopTools,
+			ToolAnchor.BottomLeft or ToolAnchor.BottomRight => sidebar.BottomTools,
+			_ => throw new ArgumentException($"No tools to show preview in for anchor '{anchor}'.", nameof(anchor))
+		};
+	}
+	
 	private static int CalculateInsertionIndex(Container tools, Vector2 mousePosition, bool preview)
 	{
 		var children = tools.GetChildren()
@@ -193,11 +191,9 @@ public partial class ToolDragOverlay : Control
 
 			if (mousePosition.Y < midpoint)
 			{
-				GD.Print($"[{nameof(CalculateInsertionIndex)}]: {index})");
 				return index;
 			}
 		}
-		GD.Print($"[{nameof(CalculateInsertionIndex)}]: {children.Count})");
 
 		return children.Count;
 	}
