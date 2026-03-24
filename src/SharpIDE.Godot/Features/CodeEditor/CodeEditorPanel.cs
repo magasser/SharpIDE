@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 using Ardalis.GuardClauses;
 using Godot;
 using R3;
@@ -9,6 +11,7 @@ using SharpIDE.Application.Features.Events;
 using SharpIDE.Application.Features.Run;
 using SharpIDE.Application.Features.SolutionDiscovery;
 using SharpIDE.Application.Features.SolutionDiscovery.VsPersistence;
+using SharpIDE.Godot.Features.Common;
 using SharpIDE.Godot.Features.IdeSettings;
 using SharpIDE.Godot.Features.SolutionExplorer;
 
@@ -19,7 +22,7 @@ public partial class CodeEditorPanel : MarginContainer
 	[Export]
 	public Texture2D CsFileTexture { get; set; } = null!;
 	public SharpIdeSolutionModel Solution { get; set; } = null!;
-	private PackedScene _sharpIdeCodeEditScene = GD.Load<PackedScene>("res://Features/CodeEditor/SharpIdeCodeEdit.tscn");
+	private PackedScene _sharpIdeCodeEditTabScene = GD.Load<PackedScene>("res://Features/CodeEditor/SharpIdeCodeEditTab.tscn");
 	private TabContainer _tabContainer = null!;
 	private TextureProgressBar _loadingSpinner = null!;
 	private Tween? _loadingSpinnerTween;
@@ -36,9 +39,17 @@ public partial class CodeEditorPanel : MarginContainer
 		tabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowAlways;
 		tabBar.TabClosePressed += OnTabClosePressed;
 		tabBar.TabRmbClicked += OnTabRmbClicked;
+		tabBar.TabSelected += OnTabSelected;
 		_loadingSpinner = GetNode<TextureProgressBar>("%LoadingSpinner");
 		GlobalEvents.Instance.DebuggerExecutionStopped.Subscribe(OnDebuggerExecutionStopped);
 		GlobalEvents.Instance.ProjectStoppedDebugging.Subscribe(OnProjectStoppedDebugging);
+	}
+
+	private void OnTabSelected(long tab)
+	{
+		var control = (SharpIdeCodeEditTab)_tabContainer.GetCurrentTabControl();
+
+		var t = control.CodeEdit;
 	}
 
 	public override void _GuiInput(InputEvent @event)
@@ -53,14 +64,14 @@ public partial class CodeEditorPanel : MarginContainer
 		}
 	}
 	
-	public SharpIdeCodeEdit? GetCurrentCodeEdit() => _tabContainer.GetChildOrNull<SharpIdeCodeEditContainer>(_tabContainer.CurrentTab)?.CodeEdit;
+	public SharpIdeCodeEdit? GetCurrentCodeEdit() => _tabContainer.GetChildOrNull<SharpIdeCodeEditTab>(_tabContainer.CurrentTab)?.CodeEdit;
 
 	private void AdjustCodeEditorUiScale(bool increase)
 	{
 		const int minFontSize = 8;
 		const int maxFontSize = 72;
 
-		var editors = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().ToList();
+		var editors = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().ToList();
 		if (editors.Count is 0) return;
 
 		var currentFontSize = editors.First().CodeEdit.GetThemeFontSize(ThemeStringNames.FontSize);
@@ -78,7 +89,7 @@ public partial class CodeEditorPanel : MarginContainer
 	{
 		var selectedTabIndex = _tabContainer.CurrentTab;
 		var thisSolution = Singletons.AppState.RecentSlns.Single(s => s.FilePath == Solution.FilePath);
-		thisSolution.IdeSolutionState.OpenTabs = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>()
+		thisSolution.IdeSolutionState.OpenTabs = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>()
 			.Select(s => s.CodeEdit)
 			.Select((t, index) => new OpenTab
 			{
@@ -112,7 +123,7 @@ public partial class CodeEditorPanel : MarginContainer
 
 	private void OnTabClicked(long tab)
 	{
-		var sharpIdeCodeEdit = _tabContainer.GetChild<SharpIdeCodeEditContainer>((int)tab).CodeEdit;
+		var sharpIdeCodeEdit = _tabContainer.GetChild<SharpIdeCodeEditTab>((int)tab).CodeEdit;
 		var sharpIdeFile = sharpIdeCodeEdit.SharpIdeFile;
 		var caretLinePosition = new SharpIdeFileLinePosition(sharpIdeCodeEdit.GetCaretLine(), sharpIdeCodeEdit.GetCaretColumn());
 		GodotGlobalEvents.Instance.FileExternallySelected.InvokeParallelFireAndForget(sharpIdeFile, caretLinePosition);
@@ -120,7 +131,7 @@ public partial class CodeEditorPanel : MarginContainer
 
 	private void OnTabClosePressed(long tabIndex)
 	{
-		var tab = (SharpIdeCodeEditContainer)_tabContainer.GetTabControl((int)tabIndex);
+		var tab = (SharpIdeCodeEditTab)_tabContainer.GetTabControl((int)tabIndex);
 		CloseTabs([tab]);
 	}
 
@@ -129,17 +140,17 @@ public partial class CodeEditorPanel : MarginContainer
 		OpenContextMenuTab(tabIndex);
 	}
 
-	private void CloseTabs(List<SharpIdeCodeEditContainer> tabsToClose)
+	private void CloseTabs(List<SharpIdeCodeEditTab> tabsToClose)
 	{
-		var allTabs = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().ToList();
-		var currentTab = (SharpIdeCodeEditContainer?)_tabContainer.GetCurrentTabControl();
+		var allTabs = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().ToList();
+		var currentTab = (SharpIdeCodeEditTab?)_tabContainer.GetCurrentTabControl();
 		var closingCurrentTab = currentTab is not null && tabsToClose.Contains(currentTab);
 		if (closingCurrentTab) RecordNavigationToNextSelectedTab(allTabs, tabsToClose, currentTab!);
 		
 		foreach (var tab in tabsToClose) _tabContainer.RemoveChildAndQueueFree(tab);
 	}
 
-	private void RecordNavigationToNextSelectedTab(List<SharpIdeCodeEditContainer> allTabs, List<SharpIdeCodeEditContainer> tabsToClose, SharpIdeCodeEditContainer currentTabToBeClosed)
+	private void RecordNavigationToNextSelectedTab(List<SharpIdeCodeEditTab> allTabs, List<SharpIdeCodeEditTab> tabsToClose, SharpIdeCodeEditTab currentTabToBeClosed)
 	{
 		var remainingTabsIncludingCurrentTab = allTabs.Except(tabsToClose.Except([currentTabToBeClosed])).ToList();
 		Guard.Against.Zero(remainingTabsIncludingCurrentTab.Count);
@@ -175,7 +186,7 @@ public partial class CodeEditorPanel : MarginContainer
 		_loadingSpinner.Hide();
 	}
 
-	public async Task AddSharpIdeFiles(IReadOnlyList<SharpIdeFile> files)
+	public async Task AddSharpIdeFiles(IReadOnlyList<SharpIdeFile> files, SharpIdeFile? selectedFile)
 	{
 		if (files.Count <= 0) return;
 		
@@ -184,14 +195,21 @@ public partial class CodeEditorPanel : MarginContainer
 		if (_tabContainer.GetTabCount() <= 0) 
 			await this.InvokeAsync(ShowLoadingSpinner);
 
+		var timer1 = ActivityTimer.Start($"Creating Containers {files.Count}");
+
 		var newTabs = files.Select(file =>
 		                   {
-			                   var newTab = _sharpIdeCodeEditScene.Instantiate<SharpIdeCodeEditContainer>();
-			                   newTab.CodeEdit.Solution = Solution;
+			                   var newTab = _sharpIdeCodeEditTabScene.Instantiate<SharpIdeCodeEditTab>();
+			                   newTab.Solution = Solution;
+			                   newTab.File = file;
 
-			                   return (Tab: newTab, File: file);
+			                   return newTab;
 		                   })
 		                   .ToList();
+		
+		timer1.Dispose();
+		
+		var timer2 = ActivityTimer.Start($"Adding Tabs {files.Count}");
 		
 		await this.InvokeAsync(() =>
 		{			
@@ -199,13 +217,18 @@ public partial class CodeEditorPanel : MarginContainer
 			
 			foreach (var newTab in newTabs)
 			{
-				_tabContainer.AddChild(newTab.Tab);
+				_tabContainer.AddChild(newTab);
 				var newTabIndex = _tabContainer.GetTabCount() - 1;
 				_tabContainer.SetIconsForFileExtension(newTab.File, newTabIndex);
 				_tabContainer.SetTabTitle(newTabIndex, newTab.File.Name.Value);
 				_tabContainer.SetTabTooltip(newTabIndex, newTab.File.Path);
 
-				newTab.File.FileDeleted.Subscribe(async () => { await this.InvokeAsync(() => { CloseTabs([newTab.Tab]); }); });
+				if (newTab.File == selectedFile)
+				{
+					_tabContainer.SetCurrentTab(newTabIndex);
+				}
+
+				newTab.File.FileDeleted.Subscribe(async () => { await this.InvokeAsync(() => { CloseTabs([newTab]); }); });
 
 				var nameChanged = newTab.File.Name.Skip(1).Select(name => (name, newTab.File.IsDirty.Value));
 				var dirtyChanged = newTab.File.IsDirty.Skip(1).Select(isDirty => (newTab.File.Name.Value, isDirty));
@@ -216,29 +239,26 @@ public partial class CodeEditorPanel : MarginContainer
 				           .SubscribeAwait(async (x, ct) =>
 				           {
 					           var (name, isDirty) = x;
-					           await UpdateTabFileName(newTab.Tab.GetIndex(), name, isDirty);
+					           await UpdateTabFileName(newTab.GetIndex(), name, isDirty);
 				           })
-				           .AddTo(newTab.Tab); // needs to be on ui thread
+				           .AddTo(newTab); // needs to be on ui thread
 			}
 		});
-
-		foreach (var newTab in newTabs)
-		{
-			await newTab.Tab.CodeEdit.SetSharpIdeFile(newTab.File, fileLinePosition: null);
-		}
+		
+		timer2.Dispose();
 	}
 
 	public async Task SetSharpIdeFile(SharpIdeFile file, SharpIdeFileLinePosition? fileLinePosition)
 	{
 		await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
-		var existingTab = await this.InvokeAsync(() => _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().FirstOrDefault(t => t.CodeEdit.SharpIdeFile == file));
+		var existingTab = await this.InvokeAsync(() => _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().FirstOrDefault(t => t.CodeEdit.SharpIdeFile == file));
 		if (existingTab is not null)
 		{
 			await SetCurrentSharpIdeFile(file, fileLinePosition);
 			return;
 		}
 
-		await AddSharpIdeFiles([file]);
+		await AddSharpIdeFiles([file], null);
 		await SetCurrentSharpIdeFile(file, fileLinePosition);
 	}
 
@@ -246,7 +266,7 @@ public partial class CodeEditorPanel : MarginContainer
 	{
 		await this.InvokeAsync(() =>
 		{
-			var tab = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().FirstOrDefault(t => t.CodeEdit.SharpIdeFile == file);
+			var tab = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().FirstOrDefault(t => t.CodeEdit.SharpIdeFile == file);
 			if (tab is null) return;
 			
 			_tabContainer.CurrentTab = tab.GetIndex();
@@ -294,7 +314,7 @@ public partial class CodeEditorPanel : MarginContainer
 		
 		await this.InvokeAsync(() =>
 		{
-			var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath).CodeEdit;
+			var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath).CodeEdit;
 			tabForStopInfo.SetLineBackgroundColor(lineInt, ExecutingLineColor);
 			tabForStopInfo.SetLineAsExecuting(lineInt, true);
 		});
@@ -311,7 +331,7 @@ public partial class CodeEditorPanel : MarginContainer
 		var project = stoppedProjects[0];
 		if (!_debuggerExecutionStopInfoByProject.TryRemove(project, out var executionStopInfo)) return;
 		var godotLine = executionStopInfo.Line - 1;
-		var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath);
+		var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath);
 		tabForStopInfo.CodeEdit.SetLineAsExecuting(godotLine, false);
 		tabForStopInfo.CodeEdit.SetLineColour(godotLine);
 		var threadId = executionStopInfo.ThreadId;
@@ -335,7 +355,7 @@ public partial class CodeEditorPanel : MarginContainer
 		await this.InvokeAsync(() =>
 		{
 			var godotLine = executionStopInfo.Line - 1;
-			var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditContainer>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath).CodeEdit;
+			var tabForStopInfo = _tabContainer.GetChildren().OfType<SharpIdeCodeEditTab>().Single(t => t.CodeEdit.SharpIdeFile.Path == executionStopInfo.FilePath).CodeEdit;
 			tabForStopInfo.SetLineAsExecuting(godotLine, false);
 			tabForStopInfo.SetLineColour(godotLine);
 		});

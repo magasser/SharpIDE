@@ -177,13 +177,13 @@ public partial class IdeRoot : Control
 				.OfType<(SharpIdeFile file, SharpIdeFileLinePosition linePosition, bool isSelected)>()
 				.ToList();
 
-			_ = Task.GodotRun(async () =>
+			await this.InvokeDeferredAsync(() =>
 			{
-				// Preserves order of tabs
-				await _codeEditorPanel.AddSharpIdeFiles(filesToOpen.Select(file => file.file).ToList());
-				_navigationHistoryService.StartRecording();
 				// Select the selected tab
 				var selectedFile = filesToOpen.SingleOrDefault(f => f.isSelected);
+				// Preserves order of tabs
+				await _codeEditorPanel.AddSharpIdeFiles(filesToOpen.Select(file => file.file).ToList(), selectedFile.file);
+				_navigationHistoryService.StartRecording();
 				// If no tab was selected, select the last one (if any) - occurs e.g. when the user last had a decompiled file open, which we currently don't persist to disk, meaning that all other file will have isSelected false
 				if (selectedFile.file is null)
 				{
