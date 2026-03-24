@@ -177,7 +177,7 @@ public partial class IdeRoot : Control
 				.OfType<(SharpIdeFile file, SharpIdeFileLinePosition linePosition, bool isSelected)>()
 				.ToList();
 
-			await this.InvokeDeferredAsync(() =>
+			await this.InvokeDeferredAsync(async () =>
 			{
 				// Select the selected tab
 				var selectedFile = filesToOpen.SingleOrDefault(f => f.isSelected);
